@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SkillLab PH · CSS NC II Teacher Dashboard</title>
+<style>
+:root{--bg:#07111f;--panel:#0d1a2b;--card:#101f33;--line:#28405e;--text:#f4f7fb;--muted:#91a7c0;--accent:#28d7a0;--accent2:#67e8f9;--warn:#f6c85f;--bad:#ff8b8b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,#173b5e,transparent 34%),var(--bg);color:var(--text);font:15px Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{width:min(1120px,calc(100% - 24px));margin:auto;padding:22px 0 60px}.top,.row{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.brandline{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#032018;font-weight:950}
+.brand{font-size:26px;font-weight:900}.muted{color:var(--muted)}.ey{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800}.ok{color:#baffea}.warn{color:#ffe2a2}.bad{color:#ffb8b8}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{border:1px solid var(--line);background:rgba(16,31,51,.95);border-radius:17px;padding:18px}.hero{padding:24px}.hero h1{font-size:31px;line-height:1.08;margin:6px 0 8px}
+.metric b{font-size:23px;display:block;margin:5px 0}.form{display:grid;gap:12px}label{display:grid;gap:6px;font-size:12px;font-weight:700}
+input,select,textarea{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;background:#081421;color:var(--text);padding:0 12px;font-size:16px}textarea{min-height:78px;padding:10px 12px}
+.btn{min-height:44px;border:1px solid var(--line);border-radius:11px;background:var(--panel);color:var(--text);padding:0 15px;font-weight:800;cursor:pointer}.btn.primary{background:var(--accent);border-color:var(--accent);color:#032018}.btn:disabled{opacity:.5}
+.notice{border:1px solid #4e6d8f;background:#0a1727;border-radius:12px;padding:12px}.table{overflow:auto}table{border-collapse:collapse;width:100%;min-width:800px}th,td{padding:11px 7px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}th{font-size:11px;color:var(--muted);text-transform:uppercase}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar select{width:auto;min-width:190px}.pill{display:inline-block;border:1px solid #2d846e;background:rgba(40,215,160,.08);color:#baffea;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid #58718d;border-top-color:var(--accent);border-radius:50%;animation:s .7s linear infinite;margin-right:7px;vertical-align:-3px}@keyframes s{to{transform:rotate(360deg)}}
+.progress{height:8px;background:#081421;border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+@media(max-width:850px){.g2,.g3,.g4{grid-template-columns:1fr}.toolbar select{width:100%}.hero h1{font-size:25px}}
+.coc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.coc-card{border:1px solid var(--line);background:#081421;border-radius:12px;padding:12px}.coc-card b{display:block;margin:5px 0}.coc-score{font-size:23px;font-weight:950}.coc-sub{font-size:11px;color:var(--muted);line-height:1.45}@media(max-width:900px){.coc-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.coc-grid{grid-template-columns:1fr}}@media print{body{background:#fff;color:#111}.wrap{width:100%;padding:0}.card{background:#fff;color:#111;border-color:#ccc;break-inside:avoid}.muted,.ey,th{color:#555}.no-print{display:none!important}.table{overflow:visible}table{min-width:0}th,td{color:#111;border-color:#ddd}.ok,.warn,.bad{color:#111}}
+</style></head>
+<body><div class="wrap"><header class="top"><div class="brandline"><div class="logo">SL</div><div><div class="ey ok">TEACHER DASHBOARD</div><div class="brand">SkillLab PH</div><div class="muted">TESDA CSS NC II Readiness</div></div></div><div class="toolbar"><span class="pill" id="teachernet">Online</span></div></header><main id="app" class="grid" style="margin-top:20px"></main></div>
+<script type="module">
+import{createClient}from'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm';
+const U='https://pejqnbqxfodjlmgtdnxh.supabase.co',K='sb_publishable_n6E-3o4y6-fN7HGk85sPWw_HJc7Kl08',API=U+'/functions/v1/skilllab-app';
+const sb=createClient(U,K),app=document.querySelector('#app'),teachernet=document.querySelector('#teachernet');function setTeacherNet(){if(!teachernet)return;teachernet.textContent=navigator.onLine?'Online':'Offline · live updates paused';teachernet.className='pill '+(navigator.onLine?'ok':'warn')}window.addEventListener('online',()=>{setTeacherNet();if(viewMode==='dashboard')load(true).catch(console.error)});window.addEventListener('offline',setTeacherNet);setTeacherNet();let classes=[],classId=null,catalog=[],discussionSlug=null,discussionAnon=false,liveTimer=null,liveBusy=false,viewMode='dashboard',liveAttemptMark='',liveMemberMark='',liveReadinessMark='',liveMockMark='';
+const COCS=[
+{id:1,code:'ELC724331',short:'COC 1',title:'Install and Configure Computer Systems'},
+{id:2,code:'ELC724332',short:'COC 2',title:'Set-up Computer Networks'},
+{id:3,code:'ELC724333',short:'COC 3',title:'Set-up Computer Servers'},
+{id:4,code:'ELC724334',short:'COC 4',title:'Maintain and Repair Computer Systems and Networks'}
+];
+const COC_BY_SLUG={
+'windows-usb-install-005':1,
+'pc-no-network-003':2,'dns-connectivity-004':2,'lan-testing-008':2,
+'dhcp-service-009':3,'file-sharing-010':3,
+'pc-no-display-001':4,'pc-no-boot-002':4,'pc-overheating-006':4,'pc-slow-storage-007':4
+};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const showName=s=>String(s||'').replace(/\s·\s[0-9a-f]{8}$/i,'').trim().toUpperCase();
+const fmt=s=>s==null?'—':Number(s)<60?`${Number(s)}s`:`${Math.floor(Number(s)/60)}m ${Number(s)%60}s`;
+const avgNums=a=>a.length?Math.round(a.reduce((q,x)=>q+Number(x||0),0)/a.length):0;
+const pct=(a,b)=>b?Math.round((a/b)*100):0;
+const csvCell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+const prettyKey=s=>String(s||'').replace(/_/g,' ').replace(/\b\w/g,m=>m.toUpperCase());
+const anonName=(name,i)=>discussionAnon?`STUDENT ${String(i+1).padStart(2,'0')}`:name;
+function stopLive(){if(liveTimer){clearInterval(liveTimer);liveTimer=null}}
+function newestMemberMark(rows){return(rows||[]).reduce((m,x)=>String(x.updated_at||'')>m?String(x.updated_at||''):m,'')}
+function startLiveMonitoring(class_id){
+  stopLive();
+  liveTimer=setInterval(async()=>{
+    if(document.hidden||liveBusy||viewMode!=='dashboard'||classId!==class_id)return;
+    liveBusy=true;
+    try{
+      const [a,m,r,k]=await Promise.all([
+        sb.from('attempts').select('created_at').eq('class_id',class_id).order('created_at',{ascending:false}).limit(1),
+        sb.from('class_members').select('updated_at').eq('class_id',class_id).order('updated_at',{ascending:false}).limit(1),
+        sb.from('nc2_readiness_progress').select('updated_at').eq('class_id',class_id).order('updated_at',{ascending:false}).limit(1),
+        sb.from('nc2_mock_attempts').select('created_at').eq('class_id',class_id).order('created_at',{ascending:false}).limit(1)
+      ]);
+      if(a.error||m.error||r.error||k.error)return;
+      const am=a.data?.[0]?.created_at||'',mm=m.data?.[0]?.updated_at||'',rm=r.data?.[0]?.updated_at||'',km=k.data?.[0]?.created_at||'';
+      if(am!==liveAttemptMark||mm!==liveMemberMark||rm!==liveReadinessMark||km!==liveMockMark){
+        const y=window.scrollY;
+        liveAttemptMark=am;liveMemberMark=mm;liveReadinessMark=rm;liveMockMark=km;
+        await load(true);
+        requestAnimationFrame(()=>window.scrollTo(0,y));
+      }
+    }catch(e){console.error('Live monitor check failed',e)}
+    finally{liveBusy=false}
+  },5000);
+}
+async function fetchAttempts(id){let all=[],from=0;for(;;){const r=await sb.from('attempts').select('student_name,scenario_key,diagnosis_key,repair_key,score,mastery,efficiency,steps_count,duration_seconds,evidence_score,relevant_evidence_count,required_evidence_count,unnecessary_steps,rapid_guess,created_at,activities(title,slug)').eq('class_id',id).order('created_at',{ascending:false}).range(from,from+999);if(r.error)return r;all.push(...(r.data||[]));if((r.data||[]).length<1000)return{data:all,error:null};from+=1000}}
+async function fetchFeedback(id){let all=[],from=0;for(;;){const r=await sb.from('pilot_feedback').select('student_name,clarity,note,created_at').eq('class_id',id).order('created_at',{ascending:false}).range(from,from+999);if(r.error)return r;all.push(...(r.data||[]));if((r.data||[]).length<1000)return{data:all,error:null};from+=1000}}
+async function fetchSessions(id){let all=[],from=0;for(;;){const r=await sb.from('simulation_sessions').select('student_name,scenario_key,actions,status,started_at,completed_at,activities(title,slug)').eq('class_id',id).order('started_at',{ascending:false}).range(from,from+999);if(r.error)return r;all.push(...(r.data||[]));if((r.data||[]).length<1000)return{data:all,error:null};from+=1000}}
+async function getCatalog(){const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'catalog'})});const x=await r.json();return x.activities||[]}
+function login(){app.innerHTML=`<div class="grid g2"><article class="card hero"><div class="ey">TEACHER ACCOUNT</div><h1>Manage your SkillLab class.</h1><p class="muted">Teacher accounts are sign-in only. Student registration is handled on the Student portal.</p></article><form id="auth" class="card form"><label>Email<input id="em" type="email" autocomplete="username" required></label><label>Password<input id="pw" type="password" autocomplete="current-password" minlength="6" required></label><div id="msg" class="muted"></div><button class="btn primary">Sign in</button></form></div>`;document.querySelector('#auth').onsubmit=async e=>{e.preventDefault();const m=document.querySelector('#msg');m.innerHTML='<span class="spin"></span>Signing in…';const{error}=await sb.auth.signInWithPassword({email:document.querySelector('#em').value.trim(),password:document.querySelector('#pw').value});if(error){m.innerHTML='<span class="bad">'+esc(error.message)+'</span>';return}load()}}
+async function load(silent=false){viewMode='dashboard';const{data:{session}}=await sb.auth.getSession();if(!session){stopLive();return login()}if(!silent)app.innerHTML='<div class="card"><span class="spin"></span>Loading teacher dashboard…</div>';catalog=await getCatalog();const c=await sb.from('classes').select('id,name,code,is_active,expected_students,passing_score,created_at').order('created_at',{ascending:false});if(c.error)throw new Error('Could not load classes: '+c.error.message);classes=c.data||[];if(!classId&&classes[0])classId=classes[0].id;const cur=classes.find(x=>x.id===classId)||classes[0];if(!cur){await sb.auth.signOut();return login('This account is not authorized as a SkillLab teacher.')}const passScore=Number(cur.passing_score||90);
+const [ar,fr,mr,sr,rr,kr]=await Promise.all([fetchAttempts(cur.id),fetchFeedback(cur.id),sb.from('class_members').select('user_id,student_name,display_name,status,is_test,teacher_notes,joined_at,updated_at').eq('class_id',cur.id).order('joined_at',{ascending:true}),fetchSessions(cur.id),sb.from('nc2_readiness_progress').select('class_id,user_id,coc,learn_done,practice_best,drill_1_done,drill_2_done,updated_at').eq('class_id',cur.id),sb.from('nc2_mock_attempts').select('class_id,user_id,score,oral_score,procedure_score,target_score,target_met,breakdown,duration_seconds,created_at').eq('class_id',cur.id).order('created_at',{ascending:false})]);if(ar.error)throw new Error('Could not load attempts: '+ar.error.message);if(fr.error)throw new Error('Could not load feedback: '+fr.error.message);if(mr.error)throw new Error('Could not load class roster: '+mr.error.message);if(sr.error)throw new Error('Could not load simulator sessions: '+sr.error.message);if(rr.error)throw new Error('Could not load NC II readiness: '+rr.error.message);if(kr.error)throw new Error('Could not load mock attempts: '+kr.error.message);
+const allAttempts=ar.data||[],allFeedback=fr.data||[],members=mr.data||[],allSessions=sr.data||[],readinessRows=rr.data||[],mockRows=kr.data||[];liveAttemptMark=allAttempts[0]?.created_at||'';liveMemberMark=newestMemberMark(members);liveReadinessMark=readinessRows.reduce((m,x)=>String(x.updated_at||'')>m?String(x.updated_at||''):m,'');liveMockMark=mockRows[0]?.created_at||'';const reportMembers=members.filter(x=>(x.status||'active')==='active'&&!x.is_test),managedRoster=members.length>0,reportKeys=new Set(reportMembers.map(x=>(x.student_name||'').trim().toLowerCase())),attempts=managedRoster?allAttempts.filter(x=>reportKeys.has((x.student_name||'').trim().toLowerCase())):allAttempts,feedback=managedRoster?allFeedback.filter(x=>reportKeys.has((x.student_name||'').trim().toLowerCase())):allFeedback,sessions=managedRoster?allSessions.filter(x=>reportKeys.has((x.student_name||'').trim().toLowerCase())):allSessions,byStudent=new Map(),names=new Map(),studentAttempts=new Map();
+attempts.forEach(x=>{const k=(x.student_name||'').trim().toLowerCase();if(!k)return;if(!byStudent.has(k))byStudent.set(k,new Map());if(!studentAttempts.has(k))studentAttempts.set(k,[]);studentAttempts.get(k).push(x);const slug=x.activities?.slug||'';if(slug){const m=byStudent.get(k);m.set(slug,Math.max(m.get(slug)||0,Number(x.score||0)))}if(!names.has(k))names.set(k,showName(x.student_name))});
+const memberKeys=new Set(members.map(x=>(x.student_name||'').trim().toLowerCase()));
+reportMembers.forEach(x=>{const k=(x.student_name||'').trim().toLowerCase();if(!k)return;if(!byStudent.has(k))byStudent.set(k,new Map());if(!names.has(k))names.set(k,String(x.display_name||showName(x.student_name)).trim().toUpperCase())});
+const readinessByUser=new Map();
+readinessRows.forEach(r=>{if(!readinessByUser.has(r.user_id))readinessByUser.set(r.user_id,new Map());readinessByUser.get(r.user_id).set(Number(r.coc),r)});
+const mockByUser=new Map();
+mockRows.forEach(r=>{if(!mockByUser.has(r.user_id))mockByUser.set(r.user_id,[]);mockByUser.get(r.user_id).push(r)});
+const readinessPct=(coc,row)=>{if(!row)return 0;const parts=coc===1?3:4;const done=(row.learn_done?1:0)+(Number(row.practice_best||0)>=passScore?1:0)+(row.drill_1_done?1:0)+((coc===1)?0:(row.drill_2_done?1:0));return Math.round(done/parts*100)};
+const readinessStatus=(coc,row)=>{const pct=readinessPct(coc,row);return pct===100?'Digital prep complete':pct>0?'In progress':'Not started'};
+const SKILL_LABELS={
+'windows-usb-install-005':'OS installation, drivers and verification',
+'pc-no-network-003':'NIC/IP configuration and connectivity',
+'dns-connectivity-004':'DNS diagnosis and name-resolution testing',
+'lan-testing-008':'Cable/LAN validation and fault isolation',
+'dhcp-service-009':'DHCP/service configuration and validation',
+'file-sharing-010':'User access, permissions and file sharing',
+'pc-no-display-001':'POST/display evidence and component isolation',
+'pc-no-boot-002':'Boot-path diagnosis and recovery',
+'pc-overheating-006':'Cooling-system diagnosis and verification',
+'pc-slow-storage-007':'Storage-health diagnosis and data protection'
+};
+function mockCocPct(mock,coc){
+  const x=mock?.breakdown?.coc?.[String(coc)]||mock?.breakdown?.coc?.[coc];
+  if(!x)return null;
+  const oral=x.oral_total?Math.round(Number(x.oral_correct||0)/Number(x.oral_total)*100):null;
+  const proc=x.procedure_total?Math.round(Number(x.procedure_correct||0)/Number(x.procedure_total)*100):null;
+  if(oral==null&&proc==null)return null;
+  if(oral==null)return proc;if(proc==null)return oral;
+  return Math.round(oral*.4+proc*.6);
+}
+function remediationFor(r,rows,passScore){
+  const items=[];
+  r.coc.forEach(c=>{
+    const t=c.training;
+    if(c.trainingPct<100){
+      let gap='Complete the remaining digital preparation stages.';
+      if(!t?.learn_done)gap='Review the guided lesson before further drills.';
+      else if(Number(t?.practice_best||0)<passScore)gap='Repeat randomized practice until the class target is reached.';
+      else if(!t?.drill_1_done)gap='Complete the first procedure drill without relying on answer position.';
+      else if(c.id!==1&&!t?.drill_2_done)gap='Complete the second procedure/validation drill.';
+      items.push({coc:c.id,severity:100-c.trainingPct,skill:'Digital preparation',why:`${c.trainingPct}% complete`,action:gap});
+    }
+    const mapped=catalog.filter(a=>COC_BY_SLUG[a.slug]===c.id);
+    mapped.forEach(a=>{
+      const ar=rows.filter(x=>x.activities?.slug===a.slug),best=ar.length?Math.max(...ar.map(x=>Number(x.score||0))):0;
+      if(ar.length&&best<passScore)items.push({coc:c.id,severity:passScore-best+15,skill:SKILL_LABELS[a.slug]||a.title,why:`Best simulator score ${best}%`,action:`Review ${SKILL_LABELS[a.slug]||a.title}, then retake the mapped simulator using evidence-first troubleshooting.`});
+      const rapid=ar.filter(x=>x.rapid_guess).length,weakEvidence=ar.filter(x=>x.evidence_score!=null&&Number(x.evidence_score)<Math.max(18,Math.round(Number(x.required_evidence_count||0)*3))).length,extra=ar.filter(x=>Number(x.unnecessary_steps||0)>=3).length;
+      if(rapid)items.push({coc:c.id,severity:35+rapid*5,skill:SKILL_LABELS[a.slug]||a.title,why:`${rapid} rapid-guess attempt${rapid===1?'':'s'}`,action:'Require the student to collect and explain relevant evidence before selecting diagnosis and repair.'});
+      if(weakEvidence)items.push({coc:c.id,severity:30+weakEvidence*4,skill:'Evidence gathering',why:`${weakEvidence} attempt${weakEvidence===1?'':'s'} with weak evidence`,action:'Practice identifying required evidence and linking each observation to the diagnosis before repair.'});
+      if(extra)items.push({coc:c.id,severity:25+extra*3,skill:'Troubleshooting efficiency',why:`${extra} attempt${extra===1?'':'s'} with many unnecessary steps`,action:'Rehearse a short diagnostic sequence: baseline → isolate → confirm → correct → verify.'});
+    });
+    const mp=mockCocPct(r.mockLatest,c.id);
+    if(mp!=null&&mp<passScore)items.push({coc:c.id,severity:passScore-mp+20,skill:'Mock assessment performance',why:`Latest mock COC score ${mp}%`,action:'Review this COC, then repeat one procedure drill and one mapped simulator before the next mock.'});
+  });
+  if(r.mockLatest&&Number(r.mockLatest.procedure_score)<Number(r.mockLatest.oral_score)-15)items.push({coc:0,severity:40,skill:'Procedure application',why:`Procedure ${r.mockLatest.procedure_score}% vs oral ${r.mockLatest.oral_score}%`,action:'Shift practice from reading to hands-on sequencing and explain each next action before performing it.'});
+  return items.sort((a,b)=>b.severity-a.severity).slice(0,3);
+}
+function groupActivity(x,count){
+  const lead=count>1?`${count}-student small-group rotation`:'1:1 targeted review';
+  const skill=String(x?.skill||'').toLowerCase();
+  if(skill.includes('evidence'))return `${lead}: give one fault scenario, require each learner to collect 3 relevant observations before any diagnosis, then compare evidence.`;
+  if(skill.includes('efficiency'))return `${lead}: run the same troubleshooting case using baseline → isolate → confirm → correct → verify, with a short step limit.`;
+  if(skill.includes('procedure application'))return `${lead}: hands-on sequence rehearsal; each learner must say the next action and reason before performing it.`;
+  if(skill.includes('mock assessment'))return `${lead}: one short COC mini-mock followed by oral justification of each procedure choice.`;
+  if(skill.includes('digital preparation'))return `${lead}: guided catch-up on the incomplete Learn/Practice/Drill stage, then a teacher checkpoint before re-entry.`;
+  if(/ip|dns|lan|network|nic|cable/.test(skill))return `${lead}: rebuild a small LAN task from cable/link check through IP configuration and connectivity verification.`;
+  if(/server|permission|file sharing|dhcp|service/.test(skill))return `${lead}: configure one server resource/service from requirement → access policy → client verification → documentation.`;
+  if(/display|boot|cooling|storage|fault/.test(skill))return `${lead}: evidence-first fault-isolation station; prohibit part replacement until the group states confirming evidence.`;
+  if(/os installation|driver|installation/.test(skill))return `${lead}: installation checklist drill from requirements and BIOS/UEFI through OS/drivers, testing and documentation.`;
+  return `${lead}: review the common evidence, complete one guided practice, then repeat the mapped simulator or drill.`;
+}
+function buildInterventionGroups(list){
+  const map=new Map();
+  (list||[]).forEach(r=>{
+    const x=r.remediation?.[0];
+    if(!x)return;
+    const key=`${x.coc||0}|${x.skill}`;
+    if(!map.has(key))map.set(key,{coc:x.coc||0,skill:x.skill,students:[],evidence:[],action:x.action,severity:0});
+    const g=map.get(key);
+    g.students.push({key:r.key,name:r.name});
+    if(x.why&&!g.evidence.includes(x.why))g.evidence.push(x.why);
+    g.severity+=Number(x.severity||0);
+  });
+  return [...map.values()].map(g=>({...g,count:g.students.length,avgSeverity:g.students.length?Math.round(g.severity/g.students.length):0,groupActivity:groupActivity(g,g.students.length)})).sort((a,b)=>b.count-a.count||b.avgSeverity-a.avgSeverity||String(a.skill).localeCompare(String(b.skill)));
+}
+const roster=[...byStudent].map(([k,m])=>{const rows=studentAttempts.get(k)||[],best=[...m.values()],passed=best.filter(x=>x>=passScore).length,member=members.find(x=>(x.student_name||'').trim().toLowerCase()===k);
+const progressMap=readinessByUser.get(member?.user_id)||new Map();
+const coc=COCS.map(c=>{const acts=catalog.filter(a=>COC_BY_SLUG[a.slug]===c.id),scores=acts.map(a=>Number(m.get(a.slug)||0)),attempted=scores.filter(Boolean),passedCount=scores.filter(x=>x>=passScore).length,training=progressMap.get(c.id)||null,trainingPct=readinessPct(c.id,training),trainingStatus=readinessStatus(c.id,training);return{id:c.id,short:c.short,total:acts.length,attempted:attempted.length,passed:passedCount,avg:attempted.length?avgNums(attempted):0,status:!attempted.length?'Not started':passedCount===acts.length&&acts.length?'Foundation passed':'Needs practice',training,trainingPct,trainingStatus}});
+const mock=mockByUser.get(member?.user_id)||[],mockBest=mock.length?Math.max(...mock.map(x=>Number(x.score||0))):0,mockLatest=mock[0]||null;
+const base={key:k,name:names.get(k)||showName(k),scores:m,labs:m.size,passed,attempts:rows.length,retakes:Math.max(0,rows.length-m.size),avgBest:avgNums(best),latest:rows[0]?.created_at||'',joined:member?.joined_at||'',status:rows.length?'In progress':'Not started',complete:catalog.length&&catalog.every(a=>(m.get(a.slug)||0)>=passScore),coc,mock,mockBest,mockLatest};
+return{...base,remediation:remediationFor(base,rows,passScore)}}).map(r=>({...r,status:r.complete?'Complete':r.status})).sort((a,b)=>a.name.localeCompare(b.name));
+const interventionGroups=buildInterventionGroups(roster);
+const visibleBest=[];for(const [,m] of byStudent)for(const [,score] of m)visibleBest.push(score);
+const avg=avgNums(visibleBest),complete=roster.filter(x=>x.complete).length,expected=cur.expected_students||15,notStarted=roster.filter(x=>!x.attempts).length,totalAttempts=attempts.length,retakes=roster.reduce((q,x)=>q+x.retakes,0),passAttempts=attempts.filter(x=>Number(x.score||0)>=passScore).length,unmapped=attempts.filter(x=>!x.activities?.slug).length;
+const labStats=catalog.map((a,i)=>{const rows=attempts.filter(x=>x.activities?.slug===a.slug),best=new Map();rows.forEach(x=>{const k=(x.student_name||'').trim().toLowerCase();if(k)best.set(k,Math.max(best.get(k)||0,Number(x.score||0)))});const students=best.size,passed=[...best.values()].filter(x=>x>=passScore).length,durations=rows.map(x=>x.duration_seconds).filter(x=>x!=null),effs=rows.map(x=>x.efficiency).filter(x=>x!=null);return{n:i+1,title:a.title,students,attempts:rows.length,retakes:Math.max(0,rows.length-students),passed,passRate:pct(passed,students),avgScore:avgNums(rows.map(x=>x.score)),avgTime:durations.length?Math.round(durations.reduce((q,x)=>q+Number(x),0)/durations.length):null,avgEff:avgNums(effs)}});
+if(!discussionSlug||!catalog.some(a=>a.slug===discussionSlug))discussionSlug=catalog[0]?.slug||null;
+const discussionActivity=catalog.find(a=>a.slug===discussionSlug)||catalog[0]||null;
+const simRows=discussionActivity?attempts.filter(x=>x.activities?.slug===discussionActivity.slug):[];
+const simSessions=discussionActivity?sessions.filter(x=>x.activities?.slug===discussionActivity.slug):[];
+const simByStudent=new Map();
+simRows.slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).forEach(x=>{const k=(x.student_name||'').trim().toLowerCase();if(!k)return;if(!simByStudent.has(k))simByStudent.set(k,[]);simByStudent.get(k).push(x)});
+const simStudents=[...simByStudent.entries()].map(([k,rows])=>{const passAt=rows.findIndex(x=>Number(x.score)>=passScore),passRows=rows.filter(x=>Number(x.score)>=passScore),best=Math.max(...rows.map(x=>Number(x.score||0))),first=Number(rows[0]?.score||0),bestPass=passRows.slice().sort((a,b)=>Number(b.score)-Number(a.score)||Number(a.duration_seconds||999999)-Number(b.duration_seconds||999999))[0]||null;return{k,name:showName(rows[0]?.student_name),rows,attempts:rows.length,triesToMastery:passAt>=0?passAt+1:null,passed:passAt>=0,best,first,improvement:best-first,bestPass}});
+const successfulAttempts=simRows.filter(x=>Number(x.score)>=passScore);
+const fastest=successfulAttempts.slice().filter(x=>x.duration_seconds!=null).sort((a,b)=>Number(a.duration_seconds)-Number(b.duration_seconds)||Number(b.score)-Number(a.score))[0]||null;
+const mostEff=successfulAttempts.slice().sort((a,b)=>Number(b.efficiency)-Number(a.efficiency)||Number(a.steps_count)-Number(b.steps_count)||Number(a.duration_seconds||999999)-Number(b.duration_seconds||999999))[0]||null;
+const masteryStudents=simStudents.filter(x=>x.triesToMastery!=null);
+const minTries=masteryStudents.length?Math.min(...masteryStudents.map(x=>x.triesToMastery)):null;
+const fewest=minTries==null?[]:simStudents.filter(x=>x.triesToMastery===minTries);
+const improved=simStudents.filter(x=>x.attempts>1).sort((a,b)=>b.improvement-a.improvement||b.best-a.best)[0]||null;
+const firstTry=simStudents.filter(x=>x.triesToMastery===1);
+const persistent=masteryStudents.slice().sort((a,b)=>b.triesToMastery-a.triesToMastery)[0]||null;
+const needsReview=simStudents.filter(x=>!x.passed).sort((a,b)=>b.attempts-a.attempts||a.best-b.best);
+const countKeys=(rows,key,wrongOnly=false)=>{const m=new Map();rows.forEach(x=>{if(wrongOnly&&x[key]===x.scenario_key)return;const v=x[key];if(v)m.set(v,(m.get(v)||0)+1)});return[...m.entries()].sort((a,b)=>b[1]-a[1])};
+const wrongDiag=countKeys(simRows,'diagnosis_key',true),wrongRepair=countKeys(simRows,'repair_key',true);
+const actionPaths=new Map();simSessions.filter(x=>Array.isArray(x.actions)&&x.actions.length).forEach(x=>{const p=x.actions.map(prettyKey).join(' → ');actionPaths.set(p,(actionPaths.get(p)||0)+1)});
+const commonPaths=[...actionPaths.entries()].sort((a,b)=>b[1]-a[1]).slice(0,3);
+const discussionPass=simStudents.filter(x=>x.passed).length;
+const discussionAvgAttempts=simStudents.length?Math.round((simStudents.reduce((q,x)=>q+x.attempts,0)/simStudents.length)*10)/10:0;
+const displayStudentName=raw=>{const n=showName(raw),idx=simStudents.findIndex(x=>x.name===n);return anonName(n,Math.max(0,idx))};
+const discussionQuestion=wrongDiag[0]?`Why did several students choose "${prettyKey(wrongDiag[0][0])}"? What evidence should be checked before making that diagnosis?`:`What evidence helped you isolate the fault in ${discussionActivity?.title||'this simulator'} efficiently?`;
+const clarity={clear:0,somewhat_confusing:0,confusing:0};feedback.forEach(x=>{if(x.clarity in clarity)clarity[x.clarity]++});const notes=feedback.filter(x=>String(x.note||'').trim());
+app.innerHTML=`<div class="row"><div><div class="ey">TEACHER DASHBOARD</div><h2>${esc(cur.name)}</h2><div class="muted">Code ${esc(cur.code)} · pass requirement ${passScore}/100</div><div class="muted" style="margin-top:4px">● Live monitoring · checks for updates every 5 seconds · Last refreshed ${new Date().toLocaleTimeString("en-PH")}</div></div><div class="toolbar no-print"><select id="classpick">${classes.map(x=>`<option value="${x.id}" ${x.id===cur.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select><button id="print" class="btn">Print / Save PDF</button><button id="csv" class="btn">Export CSV</button><button id="classreport" class="btn primary">Class Report</button><button id="manage" class="btn">Manage Students</button><button id="new" class="btn">New class</button><button id="pause" class="btn">${cur.is_active?'Pause class':'Activate class'}</button><button id="deleteclass" class="btn">Delete class</button><button id="out" class="btn">Sign out</button></div></div>
+<div class="grid g4"><div class="card metric"><span class="muted">Participation</span><b>${roster.length}/${expected}</b><small class="muted">${Math.max(0,expected-roster.length)} expected student(s) not yet seen</small></div><div class="card metric"><span class="muted">Course complete</span><b>${complete}/${expected}</b></div><div class="card metric"><span class="muted">Stored attempts</span><b>${totalAttempts}</b></div><div class="card metric"><span class="muted">Average best score</span><b>${avg}%</b></div></div>
+<div class="grid g4"><div class="card metric"><span class="muted">Not started</span><b>${notStarted}</b></div><div class="card metric"><span class="muted">Retakes</span><b>${retakes}</b></div><div class="card metric"><span class="muted">Passing attempts</span><b>${passAttempts}</b></div><div class="card metric"><span class="muted">Feedback</span><b>${feedback.length}</b></div></div>
+<article class="card"><div class="row"><div><div class="ey">CLASS INTERVENTION GROUPS</div><b>Students grouped by their highest-priority common weakness</b></div><button id="groupcsv" class="btn no-print">Export Group Plan CSV</button></div>${interventionGroups.length?`<div class="grid g2" style="margin-top:12px">${interventionGroups.map((g,i)=>`<div class="lesson-block"><div class="row"><div><div class="ey">GROUP ${i+1} · ${g.count} STUDENT${g.count===1?'':'S'}</div><b>${g.coc?'COC '+g.coc+' · ':''}${esc(g.skill)}</b></div><span class="pill">${g.count}</span></div><p>${g.students.map(st=>`<button class="btn student-profile" data-key="${esc(st.key)}" style="margin:3px 4px 3px 0">${esc(st.name)}</button>`).join('')}</p><div class="stage-note"><b>Evidence pattern:</b> ${esc(g.evidence.slice(0,3).join(' · ')||'Common priority detected')}</div><div class="notice" style="margin-top:10px"><b>Suggested group activity:</b><br>${esc(g.groupActivity)}</div></div>`).join('')}</div>`:'<div class="notice ok" style="margin-top:12px"><b>No intervention groups yet.</b><br>Groups appear once students generate enough readiness, simulator, or mock evidence.</div>'}<p class="muted" style="margin:12px 0 0">Each student is placed in one group using their current highest-priority remediation need; grouping updates automatically as evidence changes.</p></article>
+<article class="card"><div class="row"><div><div class="ey">REMEDIATION INTELLIGENCE</div><b>Priority review based on actual student evidence</b></div><span class="muted">Updates with live progress</span></div>${roster.length?`<div class="table" style="margin-top:12px"><table><thead><tr><th>Student</th><th>Priority COC / Skill</th><th>Evidence</th><th>Recommended next action</th></tr></thead><tbody>${roster.map(r=>{const x=r.remediation[0];return `<tr><td><b>${esc(r.name)}</b><br><button class="btn student-profile" data-key="${esc(r.key)}" style="margin-top:6px">View Profile</button></td>${x?`<td><b>${x.coc?'COC '+x.coc+' · ':''}${esc(x.skill)}</b></td><td>${esc(x.why)}</td><td>${esc(x.action)}</td>`:'<td class="ok">No current digital gap</td><td>—</td><td>Continue hands-on practice and periodic mock checks.</td>'}</tr>`}).join('')}</tbody></table></div>`:'<p class="muted">No enrolled students yet.</p>'}<p class="muted" style="margin:12px 0 0">Recommendations are generated from SkillLab activity evidence and are intended for instructional planning, not official competency decisions.</p></article>
+<article class="card"><div class="row"><div><div class="ey">MOCK ASSESSMENT</div><b>Saved readiness attempts</b></div><span class="muted">Internal SkillLab mock only</span></div><div class="grid g4" style="margin-top:12px"><div class="card metric"><span class="muted">Students attempted</span><b>${roster.filter(r=>r.mock.length).length}</b></div><div class="card metric"><span class="muted">Target reached</span><b>${roster.filter(r=>r.mock.some(x=>x.target_met)).length}</b></div><div class="card metric"><span class="muted">Total mock attempts</span><b>${mockRows.length}</b></div><div class="card metric"><span class="muted">Average best mock</span><b>${avgNums(roster.filter(r=>r.mockBest).map(r=>r.mockBest))}%</b></div></div>${roster.some(r=>r.mock.length)?`<div class="table" style="margin-top:12px"><table><thead><tr><th>Student</th><th>Best</th><th>Latest</th><th>Oral</th><th>Procedure</th><th>Attempts</th><th>Target</th></tr></thead><tbody>${roster.map(r=>`<tr><td><b>${esc(r.name)}</b></td><td class="${r.mockBest>=Number(r.mockLatest?.target_score||passScore)?'ok':r.mockBest?'warn':'muted'}">${r.mockBest?r.mockBest+'%':'—'}</td><td>${r.mockLatest?r.mockLatest.score+'%':'—'}</td><td>${r.mockLatest?r.mockLatest.oral_score+'%':'—'}</td><td>${r.mockLatest?r.mockLatest.procedure_score+'%':'—'}</td><td>${r.mock.length}</td><td class="${r.mock.some(x=>x.target_met)?'ok':r.mock.length?'warn':'muted'}">${r.mock.some(x=>x.target_met)?'Reached':r.mock.length?'Not yet':'—'}</td></tr>`).join('')}</tbody></table></div>`:''}<p class="muted" style="margin:12px 0 0">Mock results are SkillLab readiness evidence only and are not official TESDA competency results.</p></article>
+<article class="card"><div class="row"><div><div class="ey">CSS NC II DIGITAL READINESS OVERVIEW</div><b>Live Learn · Practice · Drill progress by core competency</b></div><span class="muted">Synced from student accounts</span></div><div class="coc-grid" style="margin-top:12px">${COCS.map(c=>{const studentRows=roster.map(r=>r.coc.find(x=>x.id===c.id)).filter(Boolean),started=studentRows.filter(x=>x.trainingPct>0).length,complete=studentRows.filter(x=>x.trainingPct===100).length,avg=avgNums(studentRows.filter(x=>x.trainingPct>0).map(x=>x.trainingPct));return `<div class="coc-card"><div class="ey">${c.short} · ${c.code}</div><b>${esc(c.title)}</b><div class="coc-score">${complete}/${roster.length||0}</div><div class="coc-sub">Digital prep complete · ${started} started · class readiness avg ${avg}%</div></div>`}).join('')}</div><p class="muted" style="margin:12px 0 0">Readiness here means SkillLab digital preparation only. It is not an official TESDA competency assessment result.</p></article>
+${unmapped?`<div class="notice warn"><b>Reporting check:</b> ${unmapped} stored attempt(s) could not be matched to a simulator. Those attempts are still listed in Attempt History, but they cannot be placed into the 10-lab matrix until the activity relationship is available.</div>`:''}
+<article class="card"><div class="ey">10-LAB STUDENT PROGRESS</div>${roster.length?`<div class="table"><table><thead><tr><th>Student</th>${catalog.map((a,i)=>`<th title="${esc(a.title)}">${i+1}</th>`).join('')}<th>Status</th></tr></thead><tbody>${roster.map(r=>`<tr><td><b>${esc(r.name)}</b></td>${catalog.map(a=>{const s=r.scores.get(a.slug)||0;return`<td class="${s>=passScore?'ok':s?'warn':''}">${s||'—'}</td>`}).join('')}<td class="${r.complete?'ok':r.attempts?'warn':'muted'}">${r.status}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No student attempts yet.</p>'}</article>
+<article class="card"><div class="ey">STUDENT NC II READINESS SNAPSHOT</div><p class="muted">L = Learn · P = Practice best · D = required drill completion. Percent is the synced digital-preparation completion for that COC.</p>${roster.length?`<div class="table"><table><thead><tr><th>Student</th>${COCS.map(c=>`<th>${c.short}</th>`).join('')}<th>Simulator labs</th><th>Status</th><th>Profile</th></tr></thead><tbody>${roster.map(r=>`<tr><td><b>${esc(r.name)}</b></td>${r.coc.map(c=>{const t=c.training;const drills=c.id===1?(t?.drill_1_done?1:0):((t?.drill_1_done?1:0)+(t?.drill_2_done?1:0));const drillTotal=c.id===1?1:2;return `<td class="${c.trainingPct===100?'ok':c.trainingPct?'warn':'muted'}"><b>${c.trainingPct}%</b><br><span class="muted">L ${t?.learn_done?'✓':'—'} · P ${t?.practice_best||0}% · D ${drills}/${drillTotal}</span></td>`}).join('')}<td>${r.passed}/${catalog.length}</td><td class="${r.coc.every(c=>c.trainingPct===100)?'ok':r.coc.some(c=>c.trainingPct>0)?'warn':'muted'}">${r.coc.every(c=>c.trainingPct===100)?'4/4 digital prep complete':r.coc.some(c=>c.trainingPct>0)?'In progress':'Not started'}</td><td><button class="btn student-profile" data-key="${esc(r.key)}">Open</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No enrolled students yet.</p>'}</article>
+<article class="card"><div class="ey">STUDENT SUMMARY</div>${roster.length?`<div class="table"><table><thead><tr><th>Student</th><th>Labs attempted</th><th>Labs passed</th><th>Total attempts</th><th>Retakes</th><th>Average best</th><th>Joined</th><th>Latest activity</th><th>Status</th></tr></thead><tbody>${roster.map(r=>`<tr><td><b>${esc(r.name)}</b></td><td>${r.labs}/${catalog.length}</td><td>${r.passed}/${catalog.length}</td><td>${r.attempts}</td><td>${r.retakes}</td><td>${r.avgBest}%</td><td>${r.joined?new Date(r.joined).toLocaleString('en-PH'):'—'}</td><td>${r.latest?new Date(r.latest).toLocaleString('en-PH'):'—'}</td><td class="${r.complete?'ok':r.attempts?'warn':'muted'}">${r.status}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No student attempts yet.</p>'}</article>
+<article id="discussion-report" class="card"><div class="row"><div><div class="ey">SIMULATION DISCUSSION REPORT</div><h3 style="margin:6px 0 0">${esc(discussionActivity?.title||'No simulator')}</h3></div><div class="toolbar no-print"><select id="simpick">${catalog.map((a,i)=>`<option value="${a.slug}" ${a.slug===discussionSlug?'selected':''}>${String(i+1).padStart(2,'0')} · ${esc(a.title)}</option>`).join('')}</select><button id="anon" class="btn">${discussionAnon?'Show Names':'Hide Names'}</button><button id="project" class="btn">Discussion Mode</button><button id="simprint" class="btn">Print This Report</button><button id="simcsv" class="btn">Export Simulation CSV</button></div></div>
+<div class="grid g4" style="margin-top:14px"><div class="card metric"><span class="muted">Students attempted</span><b>${simStudents.length}</b></div><div class="card metric"><span class="muted">Mastered ≥${passScore}</span><b>${discussionPass}</b><small class="muted">${pct(discussionPass,simStudents.length)}% pass rate</small></div><div class="card metric"><span class="muted">Total attempts</span><b>${simRows.length}</b></div><div class="card metric"><span class="muted">Avg attempts / student</span><b>${discussionAvgAttempts}</b></div></div>
+<div class="grid g3" style="margin-top:14px">
+<div class="notice"><div class="ey">FASTEST SUCCESSFUL MASTERY</div>${fastest?`<b>${esc(displayStudentName(fastest.student_name))}</b><br>${fmt(fastest.duration_seconds)} · ${fastest.score}% score · ${fastest.efficiency}% efficiency · ${fastest.steps_count} steps`:'<span class="muted">No passing attempt yet.</span>'}</div>
+<div class="notice"><div class="ey">HIGHEST EFFICIENCY</div>${mostEff?`<b>${esc(displayStudentName(mostEff.student_name))}</b><br>${mostEff.efficiency}% efficiency · ${mostEff.score}% score · ${mostEff.steps_count} steps · ${fmt(mostEff.duration_seconds)}`:'<span class="muted">No passing attempt yet.</span>'}</div>
+<div class="notice"><div class="ey">FEWEST TRIES TO MASTERY</div>${fewest.length?`<b>${fewest.map(x=>esc(anonName(x.name,simStudents.indexOf(x)))).join(', ')}</b><br>${minTries} attempt${minTries===1?'':'s'} to reach ${passScore}+`:'<span class="muted">No mastery yet.</span>'}</div>
+</div>
+<div class="grid g3" style="margin-top:14px">
+<div class="notice"><div class="ey">FIRST-TRY MASTERY</div><b>${firstTry.length}</b><br><span class="muted">${firstTry.length?firstTry.map(x=>esc(anonName(x.name,simStudents.indexOf(x)))).join(', '):'None yet'}</span></div>
+<div class="notice"><div class="ey">MOST IMPROVED</div>${improved?`<b>${esc(anonName(improved.name,simStudents.indexOf(improved)))}</b><br>${improved.first}% → ${improved.best}% · +${improved.improvement} points`:'<span class="muted">Needs at least two attempts.</span>'}</div>
+<div class="notice"><div class="ey">PERSISTENCE TO MASTERY</div>${persistent?`<b>${esc(anonName(persistent.name,simStudents.indexOf(persistent)))}</b><br>Mastered after ${persistent.triesToMastery} attempt${persistent.triesToMastery===1?'':'s'}`:'<span class="muted">No mastery data yet.</span>'}</div>
+</div>
+<h3 style="margin-bottom:8px">Per-student performance</h3>${simStudents.length?`<div class="table"><table><thead><tr><th>Student</th><th>Attempts</th><th>Tries to mastery</th><th>First score</th><th>Best score</th><th>Improvement</th><th>Successful time</th><th>Successful efficiency</th><th>Successful steps</th></tr></thead><tbody>${simStudents.map((x,i)=>`<tr><td><b>${esc(anonName(x.name,i))}</b></td><td>${x.attempts}</td><td>${x.triesToMastery??'Not yet'}</td><td>${x.first}%</td><td>${x.best}%</td><td>${x.improvement>0?'+':''}${x.improvement}</td><td>${x.bestPass?fmt(x.bestPass.duration_seconds):'—'}</td><td>${x.bestPass?x.bestPass.efficiency+'%':'—'}</td><td>${x.bestPass?x.bestPass.steps_count:'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No attempts for this simulator yet.</p>'}</article>
+<article class="card"><div class="ey">TROUBLESHOOTING & MISTAKE ANALYSIS</div><div class="grid g2" style="margin-top:12px"><div><h3>Common wrong diagnoses</h3>${wrongDiag.length?wrongDiag.slice(0,5).map(([k,n])=>`<div class="notice" style="margin-top:8px"><b>${esc(prettyKey(k))}</b> · ${n} selection${n===1?'':'s'}</div>`).join(''):'<p class="muted">No wrong diagnosis data for this simulator.</p>'}</div><div><h3>Common wrong repairs</h3>${wrongRepair.length?wrongRepair.slice(0,5).map(([k,n])=>`<div class="notice" style="margin-top:8px"><b>${esc(prettyKey(k))}</b> · ${n} selection${n===1?'':'s'}</div>`).join(''):'<p class="muted">No wrong repair data for this simulator.</p>'}</div></div><h3>Common troubleshooting paths</h3>${commonPaths.length?commonPaths.map(([p,n])=>`<div class="notice" style="margin-top:8px"><b>${esc(p)}</b><br><span class="muted">${n} session${n===1?'':'s'}</span></div>`).join(''):'<p class="muted">No inspection path data yet.</p>'}<div class="notice" style="margin-top:14px"><div class="ey">CLASS DISCUSSION PROMPT</div><b>${esc(discussionQuestion)}</b></div>${needsReview.length?`<div style="margin-top:14px"><div class="ey">NEEDS ADDITIONAL PRACTICE</div><p>${needsReview.map(x=>`<span class="pill">${esc(anonName(x.name,simStudents.indexOf(x)))} · best ${x.best}% · ${x.attempts} attempt${x.attempts===1?'':'s'}</span>`).join(' ')}</p></div>`:''}</article>
+<article class="card"><div class="ey">PER-LAB CLASS ANALYSIS</div><div class="table"><table><thead><tr><th>Lab</th><th>Students</th><th>Attempts</th><th>Retakes</th><th>Passed</th><th>Pass rate</th><th>Avg score</th><th>Avg efficiency</th><th>Avg time</th></tr></thead><tbody>${labStats.map(x=>`<tr><td><b>${String(x.n).padStart(2,'0')} · ${esc(x.title)}</b></td><td>${x.students}</td><td>${x.attempts}</td><td>${x.retakes}</td><td>${x.passed}</td><td>${x.passRate}%</td><td>${x.avgScore}%</td><td>${x.avgEff}%</td><td>${fmt(x.avgTime)}</td></tr>`).join('')}</tbody></table></div></article>
+<article class="card"><div class="ey">STUDENT FEEDBACK</div><div class="grid g3" style="margin-top:12px"><div class="notice"><b>Clear</b><br>${clarity.clear}</div><div class="notice"><b>Somewhat confusing</b><br>${clarity.somewhat_confusing}</div><div class="notice"><b>Confusing</b><br>${clarity.confusing}</div></div>${notes.length?`<div style="margin-top:14px"><b>Recent notes</b>${notes.slice(0,10).map(x=>`<div class="notice" style="margin-top:8px">${esc(x.note)}<div class="muted" style="margin-top:5px">${new Date(x.created_at).toLocaleString('en-PH')}</div></div>`).join('')}</div>`:''}</article>
+<article class="card table"><div class="ey">ATTEMPT HISTORY</div><table><thead><tr><th>Student</th><th>Activity</th><th>Score</th><th>Mastery</th><th>Efficiency</th><th>Time</th><th>Submitted</th></tr></thead><tbody>${attempts.map(x=>`<tr><td><b>${esc(showName(x.student_name))}</b></td><td>${esc(x.activities?.title||'Unmapped activity')}</td><td>${x.score}</td><td>${esc(x.mastery)}</td><td>${x.efficiency}%</td><td>${fmt(x.duration_seconds)}</td><td>${new Date(x.created_at).toLocaleString('en-PH')}</td></tr>`).join('')}</tbody></table></article>`;
+const groupCsv=document.querySelector('#groupcsv');if(groupCsv)groupCsv.onclick=()=>{const rows=[['Group','COC','Common Weakness','Students','Evidence Pattern','Suggested Group Activity'],...interventionGroups.map((g,i)=>[i+1,g.coc||'',g.skill,g.students.map(x=>x.name).join(' | '),g.evidence.join(' | '),g.groupActivity])];const blob=new Blob([rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${cur.code}-intervention-groups.csv`;a.click();URL.revokeObjectURL(url)};
+document.querySelectorAll('.student-profile').forEach(b=>b.onclick=()=>{const r=roster.find(x=>x.key===b.dataset.key);if(r)studentProfile(cur,r,{attempts,sessions,feedback,members:reportMembers},passScore)});
+document.querySelector('#simpick').onchange=e=>{discussionSlug=e.target.value;load()};
+document.querySelector('#anon').onclick=()=>{discussionAnon=!discussionAnon;load()};
+document.querySelector('#project').onclick=()=>{discussionAnon=true;load();setTimeout(()=>document.querySelector('#discussion-report')?.scrollIntoView({behavior:'smooth',block:'start'}),150)};
+document.querySelector('#simprint').onclick=()=>{document.querySelector('#discussion-report')?.scrollIntoView({block:'start'});window.print()};
+document.querySelector('#simcsv').onclick=()=>{const rows=[['Student','Attempts','Tries to Mastery','First Score','Best Score','Improvement','Successful Time Seconds','Successful Efficiency','Successful Steps'],...simStudents.map((x,i)=>[discussionAnon?anonName(x.name,i):x.name,x.attempts,x.triesToMastery??'',x.first,x.best,x.improvement,x.bestPass?.duration_seconds??'',x.bestPass?.efficiency??'',x.bestPass?.steps_count??''])];const blob=new Blob([rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${cur.code}-${discussionActivity?.slug||'simulation'}-discussion.csv`;a.click();URL.revokeObjectURL(url)};
+document.querySelector('#print').onclick=()=>window.print();
+document.querySelector('#csv').onclick=()=>{const rows=[['Student',...COCS.flatMap(c=>[`${c.short} Readiness %`,`${c.short} Learn`,`${c.short} Practice Best`,`${c.short} Drill`]),'Mock Best','Mock Latest','Mock Attempts','Mock Target Reached','Priority Remediation','Remediation Evidence','Recommended Action',...catalog.map((a,i)=>`Lab ${i+1}: ${a.title}`),'Labs Attempted','Labs Passed','Total Attempts','Retakes','Average Best','Status'],...roster.map(r=>[r.name,...r.coc.flatMap(c=>{const t=c.training,drills=c.id===1?(t?.drill_1_done?1:0):((t?.drill_1_done?1:0)+(t?.drill_2_done?1:0)),total=c.id===1?1:2;return[c.trainingPct,t?.learn_done?'YES':'NO',t?.practice_best||0,`${drills}/${total}`]}),r.mockBest||'',r.mockLatest?.score||'',r.mock.length,r.mock.some(x=>x.target_met)?'YES':'NO',r.remediation[0]?((r.remediation[0].coc?'COC '+r.remediation[0].coc+' · ':'')+r.remediation[0].skill):'',r.remediation[0]?.why||'',r.remediation[0]?.action||'',...catalog.map(a=>r.scores.get(a.slug)||''),r.labs,r.passed,r.attempts,r.retakes,r.avgBest,r.complete?'Complete':'In progress'])];const blob=new Blob([rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${cur.code}-skilllab-report.csv`;a.click();URL.revokeObjectURL(url)};
+document.querySelector('#classpick').onchange=e=>{classId=e.target.value;load()};document.querySelector('#classreport').onclick=()=>{stopLive();viewMode='report';classReport(cur,{members:reportMembers,attempts,feedback,sessions,readiness:readinessRows,mocks:mockRows})};document.querySelector('#manage').onclick=()=>{stopLive();viewMode='manage';manageStudents(cur)};document.querySelector('#out').onclick=async()=>{stopLive();await sb.auth.signOut();classId=null;login()};document.querySelector('#pause').onclick=async()=>{const{error}=await sb.from('classes').update({is_active:!cur.is_active}).eq('id',cur.id);if(error)return alert(error.message);load()};document.querySelector('#deleteclass').onclick=async()=>{const v=prompt('Deleting this class permanently removes its roster, attempts, sessions and feedback. Type DELETE '+cur.code+' to confirm.');if(v!=='DELETE '+cur.code)return;const{error}=await sb.from('classes').delete().eq('id',cur.id);if(error)return alert(error.message);classId=null;load()};document.querySelector('#new').onclick=()=>{stopLive();viewMode='new';newClass(session.user)};if(!silent&&!liveTimer)startLiveMonitoring(cur.id)}
+
+function studentProfile(cur,r,source,passScore){
+  stopLive();viewMode='profile';
+  const rows=(source.attempts||[]).filter(x=>(x.student_name||'').trim().toLowerCase()===r.key);
+  const sessions=(source.sessions||[]).filter(x=>(x.student_name||'').trim().toLowerCase()===r.key);
+  const feedback=(source.feedback||[]).filter(x=>(x.student_name||'').trim().toLowerCase()===r.key);
+  const member=(source.members||[]).find(x=>(x.student_name||'').trim().toLowerCase()===r.key);
+  const labDetail=catalog.map((a,i)=>{
+    const ar=rows.filter(x=>x.activities?.slug===a.slug).slice().sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
+    const best=ar.length?Math.max(...ar.map(x=>Number(x.score||0))):0;
+    const rapid=ar.filter(x=>x.rapid_guess).length;
+    const evidence=ar.filter(x=>x.evidence_score!=null).map(x=>Number(x.evidence_score||0));
+    const unnecessary=ar.filter(x=>x.unnecessary_steps!=null).map(x=>Number(x.unnecessary_steps||0));
+    const latest=ar[0]||null;
+    return{n:i+1,activity:a,rows:ar,best,rapid,avgEvidence:avgNums(evidence),avgUnnecessary:unnecessary.length?Math.round(unnecessary.reduce((q,x)=>q+x,0)/unnecessary.length*10)/10:0,latest};
+  });
+  const rapidTotal=rows.filter(x=>x.rapid_guess).length;
+  const evidenceRows=rows.filter(x=>x.evidence_score!=null);
+  const weakEvidence=evidenceRows.filter(x=>Number(x.evidence_score)<Math.max(18,Math.round(Number(x.required_evidence_count||0)*3))).length;
+  const avgEvidence=avgNums(evidenceRows.map(x=>x.evidence_score));
+  const avgUnnecessary=rows.filter(x=>x.unnecessary_steps!=null).length?Math.round(rows.filter(x=>x.unnecessary_steps!=null).reduce((q,x)=>q+Number(x.unnecessary_steps||0),0)/rows.filter(x=>x.unnecessary_steps!=null).length*10)/10:0;
+  const latestMock=r.mockLatest;
+  const cocDetail=COCS.map(c=>{
+    const rc=r.coc.find(x=>x.id===c.id),mapped=labDetail.filter(x=>COC_BY_SLUG[x.activity.slug]===c.id);
+    return{...c,training:rc?.training||null,trainingPct:rc?.trainingPct||0,mapped,mockPct:mockCocPct(latestMock,c.id)};
+  });
+  const csvRows=[
+    ['Student',r.name],
+    ['Class',cur.name],
+    ['Pass requirement',passScore],
+    [],
+    ['COC','Digital Readiness %','Learn','Practice Best','Drill Progress','Latest Mock COC %'],
+    ...cocDetail.map(c=>{const t=c.training,drills=c.id===1?(t?.drill_1_done?1:0):((t?.drill_1_done?1:0)+(t?.drill_2_done?1:0)),total=c.id===1?1:2;return[c.short,c.trainingPct,t?.learn_done?'YES':'NO',t?.practice_best||0,`${drills}/${total}`,c.mockPct??'']}),
+    [],
+    ['Lab','Skill','Attempts','Best Score','Rapid Guess Attempts','Avg Evidence','Avg Unnecessary Steps','Latest Score'],
+    ...labDetail.map(x=>[`Lab ${x.n}`,SKILL_LABELS[x.activity.slug]||x.activity.title,x.rows.length,x.best||'',x.rapid,x.avgEvidence||'',x.avgUnnecessary||'',x.latest?.score||'']),
+    [],
+    ['Priority','Evidence','Recommended Action'],
+    ...r.remediation.map(x=>[(x.coc?'COC '+x.coc+' · ':'')+x.skill,x.why,x.action])
+  ];
+  app.innerHTML=`<div class="row"><div><div class="ey">STUDENT INTERVENTION PROFILE</div><h2>${esc(r.name)}</h2><div class="muted">${esc(cur.name)} · class ${esc(cur.code)} · pass requirement ${passScore}/100</div></div><div class="toolbar no-print"><button id="backprofile" class="btn">Back to Dashboard</button><button id="manageprofile" class="btn">Manage Student</button><button id="printprofile" class="btn">Print / Save PDF</button><button id="csvprofile" class="btn primary">Export Student CSV</button></div></div>
+  <div class="grid g4">
+    <div class="card metric"><span class="muted">Digital COCs complete</span><b>${r.coc.filter(c=>c.trainingPct===100).length}/4</b></div>
+    <div class="card metric"><span class="muted">Simulator labs passed</span><b>${r.passed}/${catalog.length}</b></div>
+    <div class="card metric"><span class="muted">Best mock</span><b>${r.mockBest?r.mockBest+'%':'—'}</b></div>
+    <div class="card metric"><span class="muted">Stored attempts</span><b>${r.attempts}</b></div>
+  </div>
+  <article class="card"><div class="row"><div><div class="ey">PRIORITY INTERVENTION</div><b>What to work on next</b></div><span class="muted">Evidence-based</span></div>${r.remediation.length?`<div class="grid g3" style="margin-top:12px">${r.remediation.map((x,i)=>`<div class="notice"><div class="ey">PRIORITY ${i+1}</div><b>${x.coc?'COC '+x.coc+' · ':''}${esc(x.skill)}</b><p class="muted">${esc(x.why)}</p><div>${esc(x.action)}</div></div>`).join('')}</div>`:'<div class="notice ok" style="margin-top:12px"><b>No current digital gap detected.</b><br>Continue hands-on practice, evidence explanation and periodic mock checks.</div>'}<p class="muted" style="margin:12px 0 0">This intervention view supports instruction and readiness preparation only; it is not an official TESDA competency decision.</p></article>
+  <article class="card"><div class="ey">COC 1–4 EVIDENCE PROFILE</div><div class="coc-grid" style="margin-top:12px">${cocDetail.map(c=>{const t=c.training,drills=c.id===1?(t?.drill_1_done?1:0):((t?.drill_1_done?1:0)+(t?.drill_2_done?1:0)),drillTotal=c.id===1?1:2;return`<div class="coc-card"><div class="ey">${c.short} · ${c.code}</div><b>${esc(c.title)}</b><div class="coc-score">${c.trainingPct}%</div><div class="coc-sub">Learn ${t?.learn_done?'✓':'—'} · Practice ${t?.practice_best||0}% · Drills ${drills}/${drillTotal}<br>Mapped sims ${c.mapped.filter(x=>x.best>=passScore).length}/${c.mapped.length} passed · Latest mock ${c.mockPct==null?'—':c.mockPct+'%'}</div></div>`}).join('')}</div></article>
+  <article class="card"><div class="ey">EVIDENCE & ANTI-GUESS SIGNALS</div><div class="grid g4" style="margin-top:12px"><div class="card metric"><span class="muted">Rapid-guess attempts</span><b class="${rapidTotal?'warn':'ok'}">${rapidTotal}</b></div><div class="card metric"><span class="muted">Weak-evidence attempts</span><b class="${weakEvidence?'warn':'ok'}">${weakEvidence}</b></div><div class="card metric"><span class="muted">Average evidence score</span><b>${evidenceRows.length?avgEvidence:'—'}</b></div><div class="card metric"><span class="muted">Avg unnecessary steps</span><b>${rows.length?avgUnnecessary:'—'}</b></div></div></article>
+  <article class="card"><div class="ey">SIMULATOR SKILL PROFILE</div><div class="table"><table><thead><tr><th>Lab</th><th>Skill</th><th>COC</th><th>Attempts</th><th>Best</th><th>Rapid guess</th><th>Avg evidence</th><th>Avg extra steps</th><th>Latest</th></tr></thead><tbody>${labDetail.map(x=>`<tr><td>${x.n}</td><td><b>${esc(SKILL_LABELS[x.activity.slug]||x.activity.title)}</b></td><td>${COC_BY_SLUG[x.activity.slug]||'—'}</td><td>${x.rows.length}</td><td class="${x.best>=passScore?'ok':x.best?'warn':'muted'}">${x.best?x.best+'%':'—'}</td><td class="${x.rapid?'warn':'muted'}">${x.rapid}</td><td>${x.avgEvidence||'—'}</td><td>${x.avgUnnecessary||'—'}</td><td>${x.latest?x.latest.score+'% · '+new Date(x.latest.created_at).toLocaleDateString('en-PH'):'—'}</td></tr>`).join('')}</tbody></table></div></article>
+  <article class="card"><div class="ey">MOCK ASSESSMENT HISTORY</div>${r.mock.length?`<div class="table"><table><thead><tr><th>Date</th><th>Overall</th><th>Oral</th><th>Procedure</th>${COCS.map(c=>`<th>${c.short}</th>`).join('')}<th>Target</th><th>Time</th></tr></thead><tbody>${r.mock.map(x=>`<tr><td>${new Date(x.created_at).toLocaleString('en-PH')}</td><td class="${x.target_met?'ok':'warn'}"><b>${x.score}%</b></td><td>${x.oral_score}%</td><td>${x.procedure_score}%</td>${COCS.map(c=>`<td>${mockCocPct(x,c.id)==null?'—':mockCocPct(x,c.id)+'%'}</td>`).join('')}<td>${x.target_met?'Reached':'Not reached'}</td><td>${fmt(x.duration_seconds)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No mock assessment attempt yet.</p>'}</article>
+  <article class="card"><div class="ey">ATTEMPT HISTORY</div>${rows.length?`<div class="table"><table><thead><tr><th>Date</th><th>Simulator</th><th>Score</th><th>Evidence</th><th>Efficiency</th><th>Extra steps</th><th>Rapid guess</th><th>Time</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${new Date(x.created_at).toLocaleString('en-PH')}</td><td>${esc(x.activities?.title||'Unmapped')}</td><td class="${Number(x.score)>=passScore?'ok':'warn'}">${x.score}%</td><td>${x.evidence_score??'—'}</td><td>${x.efficiency}%</td><td>${x.unnecessary_steps??'—'}</td><td class="${x.rapid_guess?'warn':'muted'}">${x.rapid_guess?'YES':'—'}</td><td>${fmt(x.duration_seconds)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No simulator attempts yet.</p>'}</article>
+  <div class="grid g2"><article class="card"><div class="ey">TEACHER NOTES</div><p>${member?.teacher_notes?esc(member.teacher_notes):'<span class="muted">No teacher notes yet.</span>'}</p></article><article class="card"><div class="ey">STUDENT FEEDBACK</div>${feedback.length?feedback.slice(0,8).map(x=>`<div class="notice" style="margin-top:8px"><b>${esc(x.clarity||'Feedback')}</b>${x.note?'<br>'+esc(x.note):''}<div class="muted" style="margin-top:4px">${new Date(x.created_at).toLocaleString('en-PH')}</div></div>`).join(''):'<p class="muted">No feedback submitted.</p>'}</article></div>`;
+  document.querySelector('#backprofile').onclick=()=>{viewMode='dashboard';load()};
+  document.querySelector('#printprofile').onclick=()=>window.print();
+  document.querySelector('#csvprofile').onclick=()=>{const blob=new Blob([csvRows.map(row=>row.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${cur.code}-${r.name.replace(/[^A-Z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()}-intervention.csv`;a.click();URL.revokeObjectURL(url)};
+  document.querySelector('#manageprofile').onclick=()=>{viewMode='manage';manageStudents(cur,r.key)};
+}
+function classReport(cur,source){
+  let from='',to='',anonymous=false;const passScore=Number(cur.passing_score||90);
+  const members=(source.members||[]).filter(x=>(x.status||'active')==='active'&&!x.is_test);
+  const nameMap=new Map(members.map(x=>[(x.student_name||'').trim().toLowerCase(),String(x.display_name||showName(x.student_name)).trim().toUpperCase()]));
+  const orderedKeys=members.map(x=>(x.student_name||'').trim().toLowerCase()).filter(Boolean);
+  const anonMap=new Map(orderedKeys.map((k,i)=>[k,`STUDENT ${String(i+1).padStart(2,'0')}`]));
+  const studentLabel=(k)=>anonymous?(anonMap.get(k)||'STUDENT'):(nameMap.get(k)||showName(k));
+  const memberByKey=new Map(members.map(x=>[(x.student_name||'').trim().toLowerCase(),x]));
+  const readinessRows=source.readiness||[];
+  const mockRows=source.mocks||[];
+  const mocksByUser=new Map();
+  mockRows.forEach(r=>{if(!mocksByUser.has(r.user_id))mocksByUser.set(r.user_id,[]);mocksByUser.get(r.user_id).push(r)});
+  const readinessByUser=new Map();
+  readinessRows.forEach(r=>{if(!readinessByUser.has(r.user_id))readinessByUser.set(r.user_id,new Map());readinessByUser.get(r.user_id).set(Number(r.coc),r)});
+  const readinessPct=(coc,row)=>{if(!row)return 0;const parts=coc===1?3:4;const done=(row.learn_done?1:0)+(Number(row.practice_best||0)>=passScore?1:0)+(row.drill_1_done?1:0)+(coc===1?0:(row.drill_2_done?1:0));return Math.round(done/parts*100)};
+  const avg=a=>a.length?Math.round(a.reduce((q,x)=>q+Number(x||0),0)/a.length):0;
+  const avg1=a=>a.length?Math.round((a.reduce((q,x)=>q+Number(x||0),0)/a.length)*10)/10:0;
+  const within=(ts)=>{
+    if(!ts)return true;
+    const d=new Date(ts);
+    if(from&&d<new Date(from+'T00:00:00'))return false;
+    if(to&&d>new Date(to+'T23:59:59.999'))return false;
+    return true;
+  };
+  const render=()=>{
+    const attempts=(source.attempts||[]).filter(x=>within(x.created_at));
+    const sessions=(source.sessions||[]).filter(x=>within(x.started_at));
+    const feedback=(source.feedback||[]).filter(x=>within(x.created_at));
+    const byKey=new Map();
+    members.forEach(m=>byKey.set((m.student_name||'').trim().toLowerCase(),new Map()));
+    attempts.slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).forEach(x=>{
+      const k=(x.student_name||'').trim().toLowerCase(),slug=x.activities?.slug||'';
+      if(!byKey.has(k)||!slug)return;
+      const labs=byKey.get(k);if(!labs.has(slug))labs.set(slug,[]);labs.get(slug).push(x);
+    });
+    const studentStats=orderedKeys.map(k=>{
+      const labs=byKey.get(k)||new Map();
+      const detail=catalog.map(a=>{
+        const rows=(labs.get(a.slug)||[]).slice().sort((x,y)=>new Date(x.created_at)-new Date(y.created_at));
+        const best=rows.length?Math.max(...rows.map(x=>Number(x.score||0))):0;
+        const passIndex=rows.findIndex(x=>Number(x.score)>=passScore);
+        const passRow=passIndex>=0?rows[passIndex]:null;
+        return{slug:a.slug,title:a.title,rows,best,first:Number(rows[0]?.score||0),passed:passIndex>=0,tries:passIndex>=0?passIndex+1:null,firstTry:passIndex===0,passRow};
+      });
+      const attempted=detail.filter(x=>x.rows.length),passed=detail.filter(x=>x.passed);
+      const successRows=passed.map(x=>x.passRow).filter(Boolean);
+      const improvements=attempted.map(x=>Math.max(0,x.best-x.first));
+      const member=memberByKey.get(k),rp=readinessByUser.get(member?.user_id)||new Map(),readiness=COCS.map(c=>{const row=rp.get(c.id)||null;return{id:c.id,pct:readinessPct(c.id,row),row}}),mocks=mocksByUser.get(member?.user_id)||[],mockBest=mocks.length?Math.max(...mocks.map(x=>Number(x.score||0))):0,mockLatest=mocks[0]||null;
+      const cocForReport=COCS.map(c=>{const mapped=catalog.filter(a=>COC_BY_SLUG[a.slug]===c.id),scores=mapped.map(a=>detail.find(d=>d.slug===a.slug)?.best||0),attemptedScores=scores.filter(Boolean),training=rp.get(c.id)||null;return{id:c.id,short:c.short,total:mapped.length,attempted:attemptedScores.length,passed:scores.filter(x=>x>=passScore).length,avg:attemptedScores.length?avg(attemptedScores):0,training,trainingPct:readinessPct(c.id,training)}});
+      const base={key:k,name:studentLabel(k),detail,attempted:attempted.length,passed:passed.length,totalAttempts:attempted.reduce((q,x)=>q+x.rows.length,0),retakes:attempted.reduce((q,x)=>q+Math.max(0,x.rows.length-1),0),avgBest:avg(attempted.map(x=>x.best)),avgEff:avg(successRows.map(x=>x.efficiency)),avgTime:avg(successRows.map(x=>x.duration_seconds)),firstTry:detail.filter(x=>x.firstTry).length,improvement:improvements.reduce((q,x)=>q+x,0),persistence:detail.filter(x=>x.tries&&x.tries>1).reduce((q,x)=>q+(x.tries-1),0),complete:passed.length===catalog.length,status:attempted.length?(passed.length===catalog.length?'Complete':'In Progress'):'Not Started',readiness,mocks,mockBest,mockLatest,coc:cocForReport};
+      const studentRows=attempts.filter(x=>(x.student_name||'').trim().toLowerCase()===k);
+      return{...base,remediation:remediationFor(base,studentRows,passScore)};
+    });
+    const reportGroups=buildInterventionGroups(studentStats);
+    const labStats=catalog.map((a,i)=>{
+      const rows=attempts.filter(x=>x.activities?.slug===a.slug);
+      const grouped=new Map();
+      rows.slice().sort((x,y)=>new Date(x.created_at)-new Date(y.created_at)).forEach(x=>{const k=(x.student_name||'').trim().toLowerCase();if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(x)});
+      const stud=[...grouped.values()].map(rs=>{const best=Math.max(...rs.map(x=>Number(x.score||0))),pi=rs.findIndex(x=>Number(x.score)>=passScore),pr=pi>=0?rs[pi]:null;return{rows:rs,best,passed:pi>=0,tries:pi>=0?pi+1:null,passRow:pr}});
+      const passed=stud.filter(x=>x.passed),passRate=pct(passed.length,stud.length),successRows=passed.map(x=>x.passRow).filter(Boolean);
+      return{n:i+1,slug:a.slug,title:a.title,competency:a.competency||'',students:stud.length,passed:passed.length,passRate,attempts:rows.length,retakes:stud.reduce((q,x)=>q+Math.max(0,x.rows.length-1),0),avgBest:avg(stud.map(x=>x.best)),avgAttempts:avg1(stud.map(x=>x.rows.length)),avgTime:avg(successRows.map(x=>x.duration_seconds)),avgEff:avg(successRows.map(x=>x.efficiency)),band:passRate>=90?'Strong Mastery':passRate>=70?'Developing Mastery':'Needs Reinforcement'};
+    });
+    const attemptedLabs=studentStats.reduce((q,s)=>q+s.attempted,0),firstTryLabs=studentStats.reduce((q,s)=>q+s.firstTry,0),retakeLabs=studentStats.reduce((q,s)=>q+s.detail.filter(x=>x.rows.length>1).length,0);
+    const started=studentStats.filter(x=>x.attempted).length,completed=studentStats.filter(x=>x.complete).length;
+    const allBest=studentStats.flatMap(s=>s.detail.filter(x=>x.rows.length).map(x=>x.best));
+    const successAttempts=attempts.filter(x=>Number(x.score)>=passScore);
+    const overall={students:members.length,started,completed,attempts:attempts.length,avgBest:avg(allBest),avgEff:avg(successAttempts.map(x=>x.efficiency)),avgTime:avg(successAttempts.map(x=>x.duration_seconds)),firstTryRate:pct(firstTryLabs,attemptedLabs),retakeRate:pct(retakeLabs,attemptedLabs)};
+    const withData=labStats.filter(x=>x.students);
+    const highest=withData.slice().sort((a,b)=>b.passRate-a.passRate||b.avgBest-a.avgBest)[0]||null;
+    const lowest=withData.slice().sort((a,b)=>a.passRate-b.passRate||a.avgBest-b.avgBest)[0]||null;
+    const mostRetaken=withData.slice().sort((a,b)=>b.retakes-a.retakes)[0]||null;
+    const fastest=withData.filter(x=>x.avgTime).slice().sort((a,b)=>a.avgTime-b.avgTime)[0]||null;
+    const lowestEff=withData.filter(x=>x.avgEff).slice().sort((a,b)=>a.avgEff-b.avgEff)[0]||null;
+
+    const countWrong=(key)=>{const m=new Map();attempts.forEach(x=>{if(x[key]&&x[key]!==x.scenario_key)m.set(x[key],(m.get(x[key])||0)+1)});return[...m.entries()].sort((a,b)=>b[1]-a[1])};
+    const wrongDiag=countWrong('diagnosis_key'),wrongRepair=countWrong('repair_key');
+    const paths=new Map();sessions.filter(x=>Array.isArray(x.actions)&&x.actions.length).forEach(x=>{const p=x.actions.map(prettyKey).join(' → ');paths.set(p,(paths.get(p)||0)+1)});
+    const commonPaths=[...paths.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+    const bestFirstTry=Math.max(0,...studentStats.map(x=>x.firstTry)),firstTryLeaders=studentStats.filter(x=>x.firstTry===bestFirstTry&&bestFirstTry>0);
+    const efficient=studentStats.filter(x=>x.avgEff).slice().sort((a,b)=>b.avgEff-a.avgEff||b.passed-a.passed)[0]||null;
+    const fastAccurate=studentStats.filter(x=>x.avgTime&&x.passed).slice().sort((a,b)=>a.avgTime-b.avgTime||b.avgBest-a.avgBest)[0]||null;
+    const improved=studentStats.filter(x=>x.improvement>0).slice().sort((a,b)=>b.improvement-a.improvement)[0]||null;
+    const persistent=studentStats.filter(x=>x.persistence>0).slice().sort((a,b)=>b.persistence-a.persistence)[0]||null;
+    const needsSupport=studentStats.filter(x=>x.attempted&& !x.complete).sort((a,b)=>a.passed-b.passed||b.retakes-a.retakes);
+
+    const period=from||to?`${from||'Beginning'} to ${to||'Present'}`:'All Time';
+    const actionItems=[];
+    if(lowest)actionItems.push(`Reinforce ${lowest.title}; current mastery is ${lowest.passRate}% (${lowest.passed}/${lowest.students} students who attempted reached ${passScore}+).`);
+    if(mostRetaken&&mostRetaken.retakes>0)actionItems.push(`Review ${mostRetaken.title} before the next activity; it generated the most retakes (${mostRetaken.retakes}).`);
+    if(wrongDiag[0])actionItems.push(`Discuss why "${prettyKey(wrongDiag[0][0])}" is being selected incorrectly and require students to cite evidence before choosing a diagnosis.`);
+    if(lowestEff)actionItems.push(`Model a more systematic troubleshooting sequence for ${lowestEff.title}; its successful-attempt efficiency averages ${lowestEff.avgEff}%.`);
+    if(!actionItems.length)actionItems.push('Continue the current sequence and monitor mastery as more students complete the simulations.');
+
+    const scoreClass=s=>s>=passScore?'ok':s>0?'warn':'muted';
+    app.innerHTML=`<div class="row no-print"><div><div class="ey">WHOLE CLASS PERFORMANCE REPORT</div><h2>${esc(cur.name)}</h2><div class="muted">Code ${esc(cur.code)} · ${esc(period)}</div></div><div class="toolbar"><button id="backreport" class="btn">Back to Dashboard</button><button id="anonreport" class="btn">${anonymous?'Show Names':'Anonymous Names'}</button><button id="printreport" class="btn primary">Print / Save PDF</button><button id="csvreport" class="btn">Export CSV</button></div></div>
+    <article class="card no-print"><div class="ey">REPORT PERIOD</div><div class="toolbar" style="margin-top:10px"><label>From <input id="reportfrom" type="date" value="${esc(from)}"></label><label>To <input id="reportto" type="date" value="${esc(to)}"></label><button id="applyperiod" class="btn">Apply</button><button id="alltime" class="btn">All Time</button></div></article>
+    <article class="card"><div class="ey">CLASS PROFILE & EXECUTIVE SUMMARY</div><h1 style="margin:8px 0 4px">SkillLab PH – Class Performance Report</h1><div class="muted">${esc(cur.name)} · ${esc(cur.code)} · ${esc(period)} · Generated ${new Date().toLocaleString('en-PH')}</div>
+    <div class="grid g4" style="margin-top:16px"><div class="metric"><span class="muted">Active students</span><b>${overall.students}</b></div><div class="metric"><span class="muted">Started</span><b>${overall.started}</b></div><div class="metric"><span class="muted">Completed all ${catalog.length}</span><b>${overall.completed}</b><small class="muted">${pct(overall.completed,overall.students)}% completion</small></div><div class="metric"><span class="muted">Total attempts</span><b>${overall.attempts}</b></div></div>
+    <div class="grid g4"><div class="metric"><span class="muted">Average best score</span><b>${overall.avgBest}%</b></div><div class="metric"><span class="muted">Avg successful efficiency</span><b>${overall.avgEff}%</b></div><div class="metric"><span class="muted">Avg successful time</span><b>${fmt(overall.avgTime)}</b></div><div class="metric"><span class="muted">First-try mastery rate</span><b>${overall.firstTryRate}%</b><small class="muted">Retake rate ${overall.retakeRate}%</small></div></div></article>
+    <article class="card"><div class="ey">NC II DIGITAL READINESS</div><p class="muted">Synced Learn · Practice · Drill completion. This is SkillLab preparation evidence, not an official TESDA result.</p><div class="table"><table><thead><tr><th>Student</th>${COCS.map(c=>`<th>${c.short}</th>`).join('')}<th>4/4 Status</th></tr></thead><tbody>${studentStats.map(st=>`<tr><td><b>${esc(st.name)}</b></td>${st.readiness.map(r=>`<td class="${r.pct===100?'ok':r.pct?'warn':'muted'}">${r.pct}%</td>`).join('')}<td class="${st.readiness.every(r=>r.pct===100)?'ok':st.readiness.some(r=>r.pct)?'warn':'muted'}">${st.readiness.every(r=>r.pct===100)?'Complete':st.readiness.some(r=>r.pct)?'In Progress':'Not Started'}</td></tr>`).join('')}</tbody></table></div></article>
+    <article class="card"><div class="ey">CLASS INTERVENTION GROUP PLAN</div><p class="muted">Students are grouped by their highest-priority current weakness for efficient remediation planning.</p>${reportGroups.length?`<div class="table"><table><thead><tr><th>Group</th><th>Common Weakness</th><th>Students</th><th>Evidence Pattern</th><th>Suggested Group Activity</th></tr></thead><tbody>${reportGroups.map((g,i)=>`<tr><td><b>Group ${i+1}</b><br>${g.count} student${g.count===1?'':'s'}</td><td><b>${g.coc?'COC '+g.coc+' · ':''}${esc(g.skill)}</b></td><td>${g.students.map(x=>esc(x.name)).join(', ')}</td><td>${esc(g.evidence.slice(0,3).join(' · ')||'Common priority detected')}</td><td>${esc(g.groupActivity)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No intervention groups in this report period.</p>'}</article>
+    <article class="card"><div class="ey">PRIORITY REMEDIATION PLAN</div><p class="muted">Generated from readiness stages, simulator evidence and mock performance.</p><div class="table"><table><thead><tr><th>Student</th><th>Priority</th><th>Evidence</th><th>Next action</th></tr></thead><tbody>${studentStats.map(st=>{const x=st.remediation[0];return `<tr><td><b>${esc(st.name)}</b></td>${x?`<td><b>${x.coc?'COC '+x.coc+' · ':''}${esc(x.skill)}</b></td><td>${esc(x.why)}</td><td>${esc(x.action)}</td>`:'<td class="ok">No current digital gap</td><td>—</td><td>Continue hands-on practice and periodic mock checks.</td>'}</tr>`}).join('')}</tbody></table></div></article>
+    <article class="card"><div class="ey">MOCK ASSESSMENT SUMMARY</div><p class="muted">Internal SkillLab readiness check only; not an official TESDA result.</p><div class="table"><table><thead><tr><th>Student</th><th>Best</th><th>Latest</th><th>Oral</th><th>Procedure</th><th>Attempts</th><th>Target</th></tr></thead><tbody>${studentStats.map(st=>`<tr><td><b>${esc(st.name)}</b></td><td>${st.mockBest?st.mockBest+'%':'—'}</td><td>${st.mockLatest?st.mockLatest.score+'%':'—'}</td><td>${st.mockLatest?st.mockLatest.oral_score+'%':'—'}</td><td>${st.mockLatest?st.mockLatest.procedure_score+'%':'—'}</td><td>${st.mocks.length}</td><td class="${st.mocks.some(x=>x.target_met)?'ok':st.mocks.length?'warn':'muted'}">${st.mocks.some(x=>x.target_met)?'Reached':st.mocks.length?'Not yet':'—'}</td></tr>`).join('')}</tbody></table></div></article>
+    <article class="card"><div class="ey">CLASS PERFORMANCE HIGHLIGHTS</div><div class="grid g3" style="margin-top:12px">
+      <div class="notice"><b>Highest mastery</b><br>${highest?esc(highest.title)+' · '+highest.passRate+'%':'—'}</div>
+      <div class="notice"><b>Needs most reinforcement</b><br>${lowest?esc(lowest.title)+' · '+lowest.passRate+'%':'—'}</div>
+      <div class="notice"><b>Most retaken</b><br>${mostRetaken?esc(mostRetaken.title)+' · '+mostRetaken.retakes+' retakes':'—'}</div>
+      <div class="notice"><b>Fastest average successful completion</b><br>${fastest?esc(fastest.title)+' · '+fmt(fastest.avgTime):'—'}</div>
+      <div class="notice"><b>Lowest successful efficiency</b><br>${lowestEff?esc(lowestEff.title)+' · '+lowestEff.avgEff+'%':'—'}</div>
+      <div class="notice"><b>Feedback responses</b><br>${feedback.length}</div>
+    </div></article>
+    <article class="card"><div class="ey">PER-SIMULATION MASTERY ANALYSIS</div><div class="table"><table><thead><tr><th>Simulation</th><th>Competency</th><th>Attempted</th><th>Passed</th><th>Pass Rate</th><th>Avg Best</th><th>Avg Attempts</th><th>Retakes</th><th>Avg Time</th><th>Avg Efficiency</th><th>Mastery</th></tr></thead><tbody>${labStats.map(x=>`<tr><td><b>${String(x.n).padStart(2,'0')} · ${esc(x.title)}</b></td><td>${esc(x.competency||'—')}</td><td>${x.students}</td><td>${x.passed}</td><td>${x.passRate}%</td><td>${x.avgBest}%</td><td>${x.avgAttempts}</td><td>${x.retakes}</td><td>${x.avgTime?fmt(x.avgTime):'—'}</td><td>${x.avgEff||0}%</td><td class="${x.band==='Strong Mastery'?'ok':x.band==='Developing Mastery'?'warn':'bad'}">${x.band}</td></tr>`).join('')}</tbody></table></div></article>
+    <article class="card"><div class="ey">CLASS PERFORMANCE HEATMAP</div><p class="muted">Best score per student per simulator. ${passScore}+ = mastered.</p><div class="table"><table><thead><tr><th>Student</th>${catalog.map((a,i)=>`<th title="${esc(a.title)}">S${i+1}</th>`).join('')}<th>Passed</th><th>Status</th></tr></thead><tbody>${studentStats.map(s=>`<tr><td><b>${esc(s.name)}</b></td>${s.detail.map(x=>`<td class="${scoreClass(x.best)}">${x.best||'—'}</td>`).join('')}<td>${s.passed}/${catalog.length}</td><td class="${s.complete?'ok':s.attempted?'warn':'muted'}">${s.status}</td></tr>`).join('')}</tbody></table></div></article>
+    <article class="card"><div class="ey">STUDENT PROGRESS SUMMARY</div><div class="table"><table><thead><tr><th>Student</th><th>Labs Attempted</th><th>Labs Passed</th><th>Total Attempts</th><th>Retakes</th><th>Avg Best</th><th>Avg Efficiency</th><th>Avg Successful Time</th><th>First-Try Mastery</th><th>Status</th></tr></thead><tbody>${studentStats.map(s=>`<tr><td><b>${esc(s.name)}</b></td><td>${s.attempted}/${catalog.length}</td><td>${s.passed}/${catalog.length}</td><td>${s.totalAttempts}</td><td>${s.retakes}</td><td>${s.avgBest}%</td><td>${s.avgEff}%</td><td>${s.avgTime?fmt(s.avgTime):'—'}</td><td>${s.firstTry}</td><td>${s.status}</td></tr>`).join('')}</tbody></table></div></article>
+    <article class="card"><div class="ey">RECOGNITION & LEARNING PROGRESS</div><div class="grid g2" style="margin-top:12px">
+      <div class="notice"><b>First-Try Mastery</b><br>${firstTryLeaders.length?firstTryLeaders.map(x=>esc(x.name)).join(', ')+' · '+bestFirstTry+' simulation'+(bestFirstTry===1?'':'s'):'—'}</div>
+      <div class="notice"><b>Efficient Troubleshooter</b><br>${efficient?esc(efficient.name)+' · '+efficient.avgEff+'% avg successful efficiency':'—'}</div>
+      <div class="notice"><b>Fast and Accurate</b><br>${fastAccurate?esc(fastAccurate.name)+' · '+fmt(fastAccurate.avgTime)+' avg successful time':'—'}</div>
+      <div class="notice"><b>Most Improved</b><br>${improved?esc(improved.name)+' · +'+improved.improvement+' accumulated improvement points':'—'}</div>
+      <div class="notice"><b>Persistence to Mastery</b><br>${persistent?esc(persistent.name)+' · '+persistent.persistence+' extra attempt'+(persistent.persistence===1?'':'s')+' before mastery':'—'}</div>
+      <div class="notice"><b>Students needing additional support</b><br>${needsSupport.length?needsSupport.map(x=>esc(x.name)+' ('+x.passed+'/'+catalog.length+')').join(', '):'None in this report period'}</div>
+    </div></article>
+    <article class="card"><div class="ey">TROUBLESHOOTING & MISTAKE ANALYSIS</div><div class="grid g2" style="margin-top:12px"><div><h3>Common wrong diagnoses</h3>${wrongDiag.length?wrongDiag.slice(0,6).map(([k,n])=>`<div class="notice" style="margin-top:7px"><b>${esc(prettyKey(k))}</b> · ${n} incorrect selection${n===1?'':'s'}</div>`).join(''):'<p class="muted">No wrong diagnosis data.</p>'}</div><div><h3>Common wrong repairs</h3>${wrongRepair.length?wrongRepair.slice(0,6).map(([k,n])=>`<div class="notice" style="margin-top:7px"><b>${esc(prettyKey(k))}</b> · ${n} incorrect selection${n===1?'':'s'}</div>`).join(''):'<p class="muted">No wrong repair data.</p>'}</div></div><h3>Most common troubleshooting paths</h3>${commonPaths.length?commonPaths.map(([p,n])=>`<div class="notice" style="margin-top:7px"><b>${esc(p)}</b><br><span class="muted">${n} session${n===1?'':'s'}</span></div>`).join(''):'<p class="muted">No troubleshooting path data.</p>'}</article>
+    <article class="card"><div class="ey">TEACHER ACTION PLAN</div>${actionItems.map((x,i)=>`<div class="notice" style="margin-top:9px"><b>${i+1}.</b> ${esc(x)}</div>`).join('')}</article>`;
+
+    document.querySelector('#backreport').onclick=load;
+    document.querySelector('#anonreport').onclick=()=>{anonymous=!anonymous;render()};
+    document.querySelector('#applyperiod').onclick=()=>{from=document.querySelector('#reportfrom').value;to=document.querySelector('#reportto').value;if(from&&to&&from>to)return alert('From date must be before To date.');render()};
+    document.querySelector('#alltime').onclick=()=>{from='';to='';render()};
+    document.querySelector('#printreport').onclick=()=>window.print();
+    document.querySelector('#csvreport').onclick=()=>{
+      const rows=[['Student',...COCS.map(c=>`${c.short} Readiness %`),'Mock Best','Mock Latest','Mock Attempts','Mock Target Reached','Priority Remediation','Remediation Evidence','Recommended Action',...catalog.map((a,i)=>`S${i+1}: ${a.title}`),'Labs Attempted','Labs Passed','Total Attempts','Retakes','Average Best','Average Efficiency','Average Successful Time Seconds','First-Try Mastery','Status'],...studentStats.map(s=>[s.name,...s.readiness.map(r=>r.pct),s.mockBest||'',s.mockLatest?.score||'',s.mocks.length,s.mocks.some(x=>x.target_met)?'YES':'NO',s.remediation[0]?((s.remediation[0].coc?'COC '+s.remediation[0].coc+' · ':'')+s.remediation[0].skill):'',s.remediation[0]?.why||'',s.remediation[0]?.action||'',...s.detail.map(x=>x.best||''),s.attempted,s.passed,s.totalAttempts,s.retakes,s.avgBest,s.avgEff,s.avgTime,s.firstTry,s.status])];
+      const blob=new Blob([rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`${cur.code}-whole-class-report.csv`;a.click();URL.revokeObjectURL(url);
+    };
+  };
+  render();
+}
+
+async function manageCall(body){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session?.access_token)return{error:'Teacher session expired. Please sign in again.'};
+  const {data,error}=await sb.functions.invoke('skilllab-teacher-manage',{
+    body,
+    headers:{Authorization:'Bearer '+session.access_token}
+  });
+  if(error)return{error:error.message||'Management request failed.'};
+  return data||{};
+}
+async function manageStudents(cur,selectKey=''){
+  app.innerHTML='<div class="card"><span class="spin"></span>Loading student management…</div>';
+  const r=await manageCall({action:'roster',class_id:cur.id});
+  if(r.error){
+    app.innerHTML='<div class="card bad">'+esc(r.error)+'<br><button id="back" class="btn" style="margin-top:12px">Back</button></div>';
+    document.querySelector('#back').onclick=load;
+    return;
+  }
+  let students=r.students||[],filter='active',selected=selectKey?((r.students||[]).find(x=>(x.student_name||'').trim().toLowerCase()===selectKey)||null):null;
+
+  const counts=()=>({
+    active:students.filter(x=>x.status==='active'&&!x.is_test).length,
+    archived:students.filter(x=>x.status==='archived').length,
+    test:students.filter(x=>x.is_test).length,
+    removed:students.filter(x=>x.status==='removed').length
+  });
+
+  const editor=x=>`<article id="student-editor" class="card">
+    <div class="row">
+      <div><div class="ey">STUDENT DETAILS</div><h3 style="margin:6px 0 0">${esc((x.display_name||showName(x.student_name)).toUpperCase())}</h3><div class="muted">${esc(x.email||'')}</div></div>
+      <button id="closeedit" class="btn">Close</button>
+    </div>
+    <div class="grid g2" style="margin-top:14px">
+      <div class="form">
+        <label>Display name<input id="editname" maxlength="100" value="${esc((x.display_name||showName(x.student_name)).toUpperCase())}" style="text-transform:uppercase"></label>
+        <label>Status<select id="editstatus">
+          <option value="active" ${x.status==='active'?'selected':''}>Active</option>
+          <option value="archived" ${x.status==='archived'?'selected':''}>Archived</option>
+          <option value="removed" ${x.status==='removed'?'selected':''}>Removed from class</option>
+        </select></label>
+        <label><input id="edittest" type="checkbox" ${x.is_test?'checked':''}> Test / Sample account</label>
+        <label>Teacher notes<textarea id="editnotes" rows="5" maxlength="2000">${esc(x.teacher_notes||'')}</textarea></label>
+        <button id="savestudent" class="btn primary">Save Changes</button>
+      </div>
+      <div>
+        <div class="notice"><b>Account email</b><br>${esc(x.email||'—')}</div>
+        <div class="notice" style="margin-top:8px"><b>Registered name</b><br>${esc(x.auth_full_name||'—')}</div>
+        <div class="notice" style="margin-top:8px"><b>Email confirmation</b><br>${x.email_confirmed_at?'Confirmed':'Not confirmed'}</div>
+        <div class="notice" style="margin-top:8px"><b>Account created</b><br>${x.auth_created_at?new Date(x.auth_created_at).toLocaleString('en-PH'):'—'}</div>
+      </div>
+    </div>
+    <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+    <div class="ey">PROGRESS CONTROLS</div>
+    <p class="muted">Resetting one simulator removes this student's attempts, sessions and feedback for the selected simulator only.</p>
+    <div class="toolbar">
+      <select id="resetsim">${catalog.map((a,i)=>`<option value="${a.slug}">${String(i+1).padStart(2,'0')} · ${esc(a.title)}</option>`).join('')}</select>
+      <button id="resetone" class="btn">Reset Simulator</button>
+    </div>
+    ${x.is_test?`<div class="notice bad" style="margin-top:18px"><b>Delete Test / Sample Data</b><p>This permanently removes this student's attempts, sessions, feedback and class membership for ${esc(cur.name)}. Their login account is kept.</p><button id="deletetest" class="btn">Delete Test Data</button></div>`:''}
+  </article>`;
+
+  const render=()=>{
+    const n=counts();
+    const shown=students.filter(x=>filter==='test'?x.is_test:filter==='all'?true:x.status===filter&&!x.is_test);
+    app.innerHTML=`<div class="row">
+      <div><div class="ey">STUDENT MANAGEMENT</div><h2>${esc(cur.name)}</h2><div class="muted">Edit roster details without changing saved student identity.</div></div>
+      <div class="toolbar"><button id="addexisting" class="btn primary">+ Add Existing Student</button><button id="backdash" class="btn">Back to Dashboard</button></div>
+    </div>
+    <div class="grid g4">
+      <div class="card metric"><span class="muted">Active</span><b>${n.active}</b></div>
+      <div class="card metric"><span class="muted">Archived</span><b>${n.archived}</b></div>
+      <div class="card metric"><span class="muted">Test / Sample</span><b>${n.test}</b></div>
+      <div class="card metric"><span class="muted">Removed</span><b>${n.removed}</b></div>
+    </div>
+    <article class="card"><div class="toolbar">
+      <button data-filter="active" class="btn">Active</button>
+      <button data-filter="archived" class="btn">Archived</button>
+      <button data-filter="test" class="btn">Test Accounts</button>
+      <button data-filter="removed" class="btn">Removed</button>
+      <button data-filter="all" class="btn">All</button>
+    </div></article>
+    ${selected?editor(selected):''}
+    <article class="card">
+      <div class="ey">CLASS ROSTER</div>
+      ${shown.length?`<div class="table"><table><thead><tr><th>Student</th><th>Email</th><th>Joined</th><th>Status</th><th>Flags</th><th>Actions</th></tr></thead><tbody>${shown.map(x=>`<tr>
+        <td><b>${esc((x.display_name||showName(x.student_name)).toUpperCase())}</b><div class="muted">${esc(x.auth_full_name||'')}</div></td>
+        <td>${esc(x.email||'—')}</td>
+        <td>${x.joined_at?new Date(x.joined_at).toLocaleString('en-PH'):'—'}</td>
+        <td>${esc(x.status||'active')}</td>
+        <td>${x.is_test?'<span class="pill warn">TEST</span>':''} ${x.possible_duplicate?'<span class="pill bad">POSSIBLE DUPLICATE</span>':''}</td>
+        <td><button class="btn edit-student" data-id="${x.user_id}">View / Edit</button></td>
+      </tr>`).join('')}</tbody></table></div>`:'<p class="muted">No students in this view.</p>'}
+    </article>`;
+
+    document.querySelector('#backdash').onclick=load;
+    document.querySelector('#addexisting').onclick=async()=>{
+      const email=prompt('Enter the registered SkillLab email address:');
+      if(!email)return;
+      const found=await manageCall({action:'find_existing_student',class_id:cur.id,email});
+      if(found.error)return alert(found.error);
+      const s=found.student;
+      if(found.already_enrolled)return alert((s?.display_name||s?.full_name||'Student')+' is already enrolled in this class.');
+      const ok=confirm('Add '+(s?.full_name||'this student')+'\n'+(s?.email||email)+'\n\nto '+cur.name+'?');
+      if(!ok)return;
+      const added=await manageCall({action:'add_existing_student',class_id:cur.id,email});
+      if(added.error)return alert(added.error);
+      const fresh=await manageCall({action:'roster',class_id:cur.id});
+      if(fresh.error)return alert(fresh.error);
+      students=fresh.students||students;
+      filter='active';
+      selected=students.find(x=>x.user_id===added.student?.user_id)||null;
+      render();
+      alert('Student added successfully.');
+    };
+    document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;selected=null;render()});
+    document.querySelectorAll('.edit-student').forEach(b=>b.onclick=()=>{
+      selected=students.find(x=>x.user_id===b.dataset.id)||null;
+      render();
+      setTimeout(()=>document.querySelector('#student-editor')?.scrollIntoView({behavior:'smooth',block:'start'}),50);
+    });
+
+    if(!selected)return;
+    document.querySelector('#closeedit').onclick=()=>{selected=null;render()};
+    document.querySelector('#editname').oninput=e=>e.target.value=e.target.value.toUpperCase();
+
+    document.querySelector('#savestudent').onclick=async()=>{
+      const btn=document.querySelector('#savestudent');
+      btn.disabled=true;btn.textContent='Saving…';
+      const res=await manageCall({
+        action:'update_student',
+        class_id:cur.id,
+        user_id:selected.user_id,
+        display_name:document.querySelector('#editname').value,
+        teacher_notes:document.querySelector('#editnotes').value,
+        is_test:document.querySelector('#edittest').checked,
+        status:document.querySelector('#editstatus').value
+      });
+      if(res.error){btn.disabled=false;btn.textContent='Save Changes';return alert(res.error)}
+      const fresh=await manageCall({action:'roster',class_id:cur.id});
+      if(fresh.error)return alert(fresh.error);
+      students=fresh.students||students;
+      selected=students.find(x=>x.user_id===selected.user_id)||null;
+      render();
+    };
+
+    document.querySelector('#resetone').onclick=async()=>{
+      const a=document.querySelector('#resetsim');
+      const title=a.options[a.selectedIndex].text;
+      const confirmText=prompt('Reset '+title+' for '+(selected.display_name||showName(selected.student_name))+'? Type RESET to confirm.');
+      if(confirmText!=='RESET')return;
+      const res=await manageCall({
+        action:'reset_simulator',
+        class_id:cur.id,
+        user_id:selected.user_id,
+        activity_slug:a.value,
+        confirm:'RESET'
+      });
+      if(res.error)return alert(res.error);
+      alert('Simulator progress reset successfully.');
+    };
+
+    const del=document.querySelector('#deletetest');
+    if(del)del.onclick=async()=>{
+      const confirmText=prompt('This permanently deletes this TEST student data from this class. Type DELETE to confirm.');
+      if(confirmText!=='DELETE')return;
+      const res=await manageCall({
+        action:'delete_test_data',
+        class_id:cur.id,
+        user_id:selected.user_id,
+        confirm:'DELETE'
+      });
+      if(res.error)return alert(res.error);
+      students=students.filter(x=>x.user_id!==selected.user_id);
+      selected=null;
+      render();
+    };
+  };
+
+  render();
+}
+
+function newClass(user){app.innerHTML=`<form id="mk" class="card form"><div class="ey">NEW CLASS</div><label>Class name<input id="cn" value="Grade 12 CSS - Pilot" required></label><label>Class code<input id="cc" value="CSSP01" minlength="4" maxlength="8" pattern="[A-Z0-9]{4,8}" autocomplete="off" style="text-transform:uppercase" required><small class="muted">4–8 letters/numbers only. Spaces are removed automatically.</small></label><label>Expected students<input id="ce" type="number" value="15" min="1" max="100"></label><label>Passing score<input id="ps" type="number" value="90" min="50" max="100" required><small class="muted">Students must reach this score to unlock the next simulator.</small></label><button class="btn primary">Create class</button><button type="button" id="back" class="btn">Back</button></form>`;const cc=document.querySelector('#cc');cc.oninput=()=>{cc.value=cc.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)};document.querySelector('#back').onclick=load;document.querySelector('#mk').onsubmit=async e=>{e.preventDefault();const code=cc.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8),passing_score=Number(document.querySelector('#ps').value);cc.value=code;if(code.length<4)return alert('Class code must be 4–8 letters/numbers only.');if(passing_score<50||passing_score>100)return alert('Passing score must be between 50 and 100.');const{data,error}=await sb.from('classes').insert({owner_id:user.id,name:document.querySelector('#cn').value.trim(),code,expected_students:Number(document.querySelector('#ce').value),passing_score}).select('id').single();if(error){if(error.code==='23505')return alert('That class code is already in use.');return alert('Could not create class: '+error.message)}classId=data.id;load()}}
+load().catch(e=>{console.error(e);app.innerHTML='<div class="card bad"><b>Teacher dashboard could not load.</b><p>'+esc(e?.message||e||'Unknown error')+'</p><button id="retryload" class="btn">Retry</button></div>';document.querySelector('#retryload').onclick=()=>location.reload()});
+</script></body></html>
